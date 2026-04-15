@@ -1,0 +1,113 @@
+<div class="client-projects-container">
+  <div class="page-header">
+    <div class="header-content">
+      <h1>
+        <mat-icon>folder_open</mat-icon>
+        {{ 'clientProjects.title' | translate }}
+      </h1>
+      <p class="subtitle">{{ 'clientProjects.subtitle' | translate }}</p>
+    </div>
+    <button mat-raised-button color="primary" routerLink="/frontoffice/client/projects/create">
+      <mat-icon>add</mat-icon>
+      {{ 'clientProjects.createProject' | translate }}
+    </button>
+  </div>
+
+  @if (loading) {
+    <div class="loading-container">
+      <mat-spinner></mat-spinner>
+      <p>{{ 'clientProjects.loading' | translate }}</p>
+    </div>
+  } @else if (projects.length === 0) {
+    <mat-card class="empty-state">
+      <mat-card-content>
+        <mat-icon class="empty-icon">folder_off</mat-icon>
+        <h2>{{ 'clientProjects.noProjects' | translate }}</h2>
+        <p>{{ 'clientProjects.noProjectsMessage' | translate }}</p>
+        <button mat-raised-button color="primary" routerLink="/frontoffice/client/projects/create">
+          <mat-icon>add_circle</mat-icon>
+          {{ 'clientProjects.createFirstProject' | translate }}
+        </button>
+      </mat-card-content>
+    </mat-card>
+  } @else {
+    <div class="projects-grid">
+      @for (project of projects; track project.id) {
+        <mat-card class="project-card" [class]="'status-' + project.status.toLowerCase()">
+          <mat-card-header>
+            <div class="project-header">
+              <div class="project-title-section">
+                <h3>{{ 'clientProjects.projectHash' | translate }}{{ project.id?.slice(0, 8) }}</h3>
+                <mat-chip-set>
+                  <mat-chip [style.background-color]="getStatusColor(project.status)">
+                    {{ getStatusLabel(project.status) }}
+                  </mat-chip>
+                </mat-chip-set>
+              </div>
+              @if (getPendingMilestonesCount(project) > 0) {
+                <mat-chip class="pending-chip" color="warn">
+                  <mat-icon>notification_important</mat-icon>
+                  {{ getPendingMilestonesCount(project) }} {{ 'clientProjects.milestonesToValidate' | translate }}
+                </mat-chip>
+              }
+            </div>
+          </mat-card-header>
+
+          <mat-card-content>
+            <div class="project-info">
+              <div class="info-row">
+                <mat-icon>calendar_today</mat-icon>
+                <span>{{ 'clientProjects.startDate' | translate }} : {{ project.startDate | date:'dd/MM/yyyy' }}</span>
+              </div>
+              <div class="info-row">
+                <mat-icon>event</mat-icon>
+                <span>{{ 'clientProjects.endDate' | translate }} : {{ project.endDate | date:'dd/MM/yyyy' }}</span>
+              </div>
+              @if (getDaysRemaining(project.endDate) > 0) {
+                <div class="info-row">
+                  <mat-icon>schedule</mat-icon>
+                  <span>{{ getDaysRemaining(project.endDate) }} {{ 'clientProjects.daysRemaining' | translate }}</span>
+                </div>
+              } @else if (getDaysRemaining(project.endDate) < 0 && project.status === ProjectStatus.ACTIVE) {
+                <div class="info-row warning">
+                  <mat-icon>warning</mat-icon>
+                  <span>{{ 'clientProjects.lateDays' | translate: {days: Math.abs(getDaysRemaining(project.endDate))} }}</span>
+                </div>
+              }
+              <div class="info-row">
+                <mat-icon>timeline</mat-icon>
+                <span>{{ project.milestones?.length || 0 }} {{ 'clientProjects.milestones' | translate }}</span>
+              </div>
+            </div>
+
+            <div class="progress-section">
+              <div class="progress-label">
+                <span>{{ 'clientProjects.progress' | translate }}</span>
+                <span class="progress-value">{{ project.progress }}%</span>
+              </div>
+              <mat-progress-bar 
+                mode="determinate" 
+                [value]="project.progress || 0"
+                [color]="project.progress === 100 ? 'accent' : 'primary'">
+              </mat-progress-bar>
+            </div>
+
+            @if (project.requirements) {
+              <div class="requirements-section">
+                <h4>{{ 'clientProjects.requirements' | translate }} :</h4>
+                <p>{{ project.requirements }}</p>
+              </div>
+            }
+          </mat-card-content>
+
+          <mat-card-actions>
+            <button mat-button color="primary" [routerLink]="['/frontoffice/client/projects', project.id, 'dashboard']">
+              <mat-icon>visibility</mat-icon>
+              {{ 'clientProjects.viewProject' | translate }}
+            </button>
+          </mat-card-actions>
+        </mat-card>
+      }
+    </div>
+  }
+</div>

@@ -1,0 +1,48 @@
+{
+  "version": "0.0.1",
+  "configurations": [
+    {
+      "name": "frontend",
+      "runtimeExecutable": "/Users/admin/.nvm/versions/node/v22.22.0/bin/node",
+      "runtimeArgs": ["/Users/admin/Desktop/Site web/Frontend-Emmanuel /node_modules/@angular/cli/bin/ng.js", "serve", "--host", "0.0.0.0", "--port", "4200"],
+      "port": 4200,
+      "cwd": "/Users/admin/Desktop/Site web/Frontend-Emmanuel "
+    },
+    {
+      "name": "eureka-server",
+      "runtimeExecutable": "mvn",
+      "runtimeArgs": ["-f", "/Users/admin/Desktop/Site web/Backend-Emmanuel /eureka-server/pom.xml", "spring-boot:run"],
+      "port": 8761
+    },
+    {
+      "name": "api-gateway",
+      "runtimeExecutable": "mvn",
+      "runtimeArgs": ["-f", "/Users/admin/Desktop/Site web/Backend-Emmanuel /api-gateway/pom.xml", "spring-boot:run"],
+      "port": 8765
+    },
+    {
+      "name": "user-service",
+      "runtimeExecutable": "mvn",
+      "runtimeArgs": ["-f", "/Users/admin/Desktop/Site web/Backend-Emmanuel /micro-services/user-service/pom.xml", "spring-boot:run"],
+      "port": 8084
+    },
+    {
+      "name": "complaint-service",
+      "runtimeExecutable": "mvn",
+      "runtimeArgs": ["-f", "/Users/admin/Desktop/Site web/Backend-Emmanuel /micro-services/complaint-service/pom.xml", "spring-boot:run"],
+      "port": 8092
+    },
+    {
+      "name": "notification-service",
+      "runtimeExecutable": "mvn",
+      "runtimeArgs": ["-f", "/Users/admin/Desktop/Site web/Backend-Emmanuel /micro-services/notification-service/pom.xml", "spring-boot:run"],
+      "port": 9090
+    },
+    {
+      "name": "organization-service",
+      "runtimeExecutable": "mvn",
+      "runtimeArgs": ["-f", "/Users/admin/Desktop/Site web/Backend-Emmanuel /micro-services/organization-service/pom.xml", "spring-boot:run"],
+      "port": 9095
+    }
+  ]
+}

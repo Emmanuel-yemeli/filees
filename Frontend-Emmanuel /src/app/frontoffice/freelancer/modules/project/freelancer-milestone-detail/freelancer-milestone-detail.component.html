@@ -1,0 +1,104 @@
+<div class="freelancer-milestone-detail-container">
+  @if (loading) {
+    <div class="loading">Loading...</div>
+  } @else if (milestone) {
+    <div class="page-header">
+      <button mat-icon-button [routerLink]="['/frontoffice/freelancer/my-projects', projectId]">
+        <mat-icon>arrow_back</mat-icon>
+      </button>
+      <h1>{{ milestone.title }}</h1>
+      <mat-chip [highlighted]="true">{{ milestone.status }}</mat-chip>
+    </div>
+
+    <mat-card class="milestone-info-card">
+      <h2>Description and Objectives</h2>
+      <p class="description">{{ milestone.description }}</p>
+      
+      <h3>Acceptance Criteria</h3>
+      @if (milestone.acceptanceCriteria) {
+        <div class="criteria-list">
+          <p>{{ milestone.acceptanceCriteria }}</p>
+        </div>
+      } @else {
+        <p class="no-criteria">No criteria specified</p>
+      }
+
+      <div class="deadline-info">
+        <mat-icon>event</mat-icon>
+        <div>
+          <strong>Deadline:</strong> {{ milestone.dueDate | date:'dd/MM/yyyy' }}
+        </div>
+      </div>
+    </mat-card>
+
+    @if (milestone.status === 'REJECTED' && milestone.rejectionReason) {
+      <mat-card class="rejection-card">
+        <div class="rejection-header">
+          <mat-icon>cancel</mat-icon>
+          <h2>Revisions Requested</h2>
+        </div>
+        <p><strong>Rejection reason:</strong></p>
+        <p class="rejection-reason">{{ milestone.rejectionReason }}</p>
+      </mat-card>
+    }
+
+    @if (canSubmit()) {
+      <mat-card class="submission-card">
+        <h2>Submit My Deliverables</h2>
+        <form [formGroup]="submissionForm" (ngSubmit)="submitMilestone()">
+          <div class="upload-zone">
+            <mat-icon>cloud_upload</mat-icon>
+            <p>Drag and drop your files here or click to select</p>
+            <input type="file" multiple (change)="onFileSelected($event)" #fileInput hidden>
+            <button mat-raised-button type="button" (click)="fileInput.click()">
+              <mat-icon>attachment</mat-icon>
+              Select Files
+            </button>
+          </div>
+
+          <mat-form-field appearance="outline" class="full-width">
+            <mat-label>Comment for the client</mat-label>
+            <textarea matInput formControlName="comment" rows="4" placeholder="Describe what you have done..."></textarea>
+          </mat-form-field>
+
+          <mat-checkbox formControlName="confirmCriteria" color="primary">
+            I confirm that all acceptance criteria have been met
+          </mat-checkbox>
+          @if (submissionForm.get('confirmCriteria')?.touched && submissionForm.get('confirmCriteria')?.hasError('required')) {
+            <small class="error-text" style="color: #f44336; font-size: 12px; display: block; margin-top: 4px;">You must confirm that all acceptance criteria have been met</small>
+          }
+
+          <div class="submit-actions">
+            <button mat-raised-button type="button" [routerLink]="['/frontoffice/freelancer/my-projects', projectId]">
+              Cancel
+            </button>
+            <button mat-raised-button color="primary" type="submit" [disabled]="!submissionForm.valid || submitting">
+              <mat-icon>send</mat-icon>
+              {{ submitting ? 'Submitting...' : 'Submit Milestone' }}
+            </button>
+          </div>
+        </form>
+      </mat-card>
+    }
+
+    @if (milestone.status === 'SUBMITTED') {
+      <mat-card class="status-card submitted">
+        <mat-icon>send</mat-icon>
+        <h2>Milestone Submitted</h2>
+        <p>Waiting for client validation</p>
+        <p class="date">Soumis le {{ milestone.submittedAt | date:'dd/MM/yyyy' }}</p>
+      </mat-card>
+    }
+
+    @if (milestone.status === 'APPROVED') {
+      <mat-card class="status-card approved">
+        <mat-icon>check_circle</mat-icon>
+        <h2>Milestone Approved</h2>
+        <p>This milestone has been validated by the client</p>
+        <p class="date">Approved on {{ milestone.approvedAt | date:'MM/dd/yyyy' }}</p>
+      </mat-card>
+    }
+  } @else {
+    <div class="error">Milestone not found</div>
+  }
+</div>

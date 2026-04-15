@@ -1,0 +1,267 @@
+<div class="admin-complaints-container">
+
+  <!-- ── Header ─────────────────────────────────────────────── -->
+  <div class="page-header">
+    <div>
+      <h1>Toutes les Réclamations</h1>
+      <p class="subtitle">Gestion complète de toutes les réclamations de la plateforme</p>
+    </div>
+    <div class="header-actions">
+      <button class="btn-stats" (click)="goToStats()">
+        <mat-icon>bar_chart</mat-icon> Statistiques
+      </button>
+      <button class="btn-refresh" (click)="load()" title="Rafraîchir">
+        <mat-icon>refresh</mat-icon>
+      </button>
+    </div>
+  </div>
+
+  <!-- ── Toggle vue File / Toutes ──────────────────────────── -->
+  <div class="view-toggle">
+    <button class="toggle-btn"
+            [class.active]="activeView() === 'queue'"
+            (click)="activeView.set('queue'); loadQueue()">
+      <mat-icon>inbox</mat-icon>
+      File d'attente
+      <span class="queue-count" *ngIf="adminQueue().length > 0">{{ adminQueue().length }}</span>
+    </button>
+    <button class="toggle-btn"
+            [class.active]="activeView() === 'all'"
+            (click)="activeView.set('all')">
+      <mat-icon>list</mat-icon>
+      Toutes les réclamations
+      <span class="all-count">{{ complaints().length }}</span>
+    </button>
+    <button class="toggle-btn overdue-tab"
+            [class.active]="activeView() === 'overdue'"
+            (click)="activeView.set('overdue'); loadOverdue()">
+      <mat-icon>schedule</mat-icon>
+      En retard
+      <span class="overdue-count" *ngIf="overdueComplaints().length > 0">{{ overdueComplaints().length }}</span>
+    </button>
+  </div>
+
+  <div class="view-hint" *ngIf="activeView() === 'queue'">
+    <mat-icon>priority_high</mat-icon>
+    Ces réclamations nécessitent votre action : assignez-les à un agent.
+  </div>
+  <div class="view-hint secondary" *ngIf="activeView() === 'all'">
+    <mat-icon>info_outline</mat-icon>
+    Historique complet de toutes les réclamations.
+  </div>
+  <div class="view-hint warning" *ngIf="activeView() === 'overdue'">
+    <mat-icon>warning_amber</mat-icon>
+    Réclamations sans réponse depuis plus de 7 jours — action requise.
+  </div>
+
+  <!-- ── Quick stats ────────────────────────────────────────── -->
+  <div *ngIf="!isLoading()" class="quick-stats">
+    <div class="stat-pill total">
+      <span class="val">{{ complaints().length }}</span>
+      <span class="lbl">Total</span>
+    </div>
+    <div class="stat-pill open">
+      <span class="val">{{ countByStatus('OPEN') }}</span>
+      <span class="lbl">Ouvertes</span>
+    </div>
+    <div class="stat-pill progress">
+      <span class="val">{{ countByStatus('IN_PROGRESS') }}</span>
+      <span class="lbl">En cours</span>
+    </div>
+    <div class="stat-pill resolved">
+      <span class="val">{{ countByStatus('RESOLVED') }}</span>
+      <span class="lbl">Résolues</span>
+    </div>
+    <div class="stat-pill closed">
+      <span class="val">{{ countByStatus('CLOSED') }}</span>
+      <span class="lbl">Clôturées</span>
+    </div>
+  </div>
+
+  <!-- ── Panneau de filtres ──────────────────────────────────── -->
+  <div class="filters-panel">
+
+    <!-- ── Barre de recherche avec spinner ── -->
+    <div class="search-box" [class.searching]="isSearching()">
+
+      <!-- Icône gauche : loupe ou spinner -->
+      <div class="search-icon-wrap">
+        <!-- Spinner actif pendant le debounce -->
+        <div class="search-spinner" *ngIf="isSearching()"></div>
+        <!-- Loupe au repos -->
+        <mat-icon *ngIf="!isSearching()">search</mat-icon>
+      </div>
+
+      <input
+        type="text"
+        placeholder="Rechercher par sujet, ticket, reporter, description..."
+        [ngModel]="searchInput"
+        (ngModelChange)="onSearchChange($event)"
+        autocomplete="off">
+
+      <!-- Indicateur live "Recherche en cours..." -->
+      <span class="search-status" *ngIf="isSearching()">Recherche...</span>
+
+      <!-- Bouton clear -->
+      <button
+        class="search-clear"
+        *ngIf="searchInput.length > 0"
+        (click)="clearSearch()"
+        title="Effacer la recherche">
+        <mat-icon>close</mat-icon>
+      </button>
+    </div>
+
+    <!-- ── Filtres dropdown ── -->
+    <div class="filter-row">
+      <select
+        class="filter-select"
+        [value]="filterStatus()"
+        (change)="filterStatus.set($any($event.target).value)">
+        <option value="all">Tous les statuts</option>
+        <option *ngFor="let s of statuses" [value]="s">{{ getStatusLabel(s) }}</option>
+      </select>
+
+      <select
+        class="filter-select"
+        [value]="filterPriority()"
+        (change)="filterPriority.set($any($event.target).value)">
+        <option value="all">Toutes les priorités</option>
+        <option *ngFor="let p of priorities" [value]="p">{{ getPriorityLabel(p) }}</option>
+      </select>
+
+      <select
+        class="filter-select"
+        [value]="filterCategory()"
+        (change)="filterCategory.set($any($event.target).value)">
+        <option value="all">Toutes les catégories</option>
+        <option *ngFor="let c of categories" [value]="c">{{ getCategoryLabel(c) }}</option>
+      </select>
+
+      <button
+        class="btn-reset"
+        *ngIf="hasActiveFilters()"
+        (click)="resetFilters()">
+        <mat-icon>close</mat-icon> Réinitialiser
+      </button>
+    </div>
+
+    <!-- ── Compteur résultats ── -->
+    <div class="results-row">
+      <!-- Spinner inline pendant le debounce -->
+      <div class="results-spinner-wrap" *ngIf="isSearching()">
+        <div class="results-spinner"></div>
+        <span class="results-searching-label">Filtrage en cours...</span>
+      </div>
+
+      <!-- Résultats définitifs -->
+      <span class="results-count" *ngIf="!isSearching()">
+        <strong>{{ filtered().length }}</strong>
+        réclamation{{ filtered().length > 1 ? 's' : '' }}
+        trouvée{{ filtered().length > 1 ? 's' : '' }}
+        <span *ngIf="searchQuery()" class="search-term-hint">
+          pour « {{ searchQuery() }} »
+        </span>
+      </span>
+    </div>
+  </div>
+
+  <!-- ── Chargement overdue ─────────────────────────────────── -->
+  <div *ngIf="activeView() === 'overdue' && isLoadingOverdue()" class="state-box">
+    <div class="spinner"></div>
+    <p>Chargement...</p>
+  </div>
+  <div *ngIf="activeView() === 'overdue' && !isLoadingOverdue() && overdueComplaints().length === 0" class="state-box empty">
+    <mat-icon class="empty-icon">check_circle_outline</mat-icon>
+    <h2>Aucune réclamation en retard</h2>
+    <p>Toutes les réclamations ont été traitées dans les 7 derniers jours.</p>
+  </div>
+
+  <!-- ── Chargement initial ──────────────────────────────────── -->
+  <div *ngIf="isLoading() && activeView() !== 'overdue'" class="state-box">
+    <div class="spinner"></div>
+    <p>Chargement...</p>
+  </div>
+
+  <!-- ── Aucun résultat ──────────────────────────────────────── -->
+  <div *ngIf="!isLoading() && !isSearching() && filtered().length === 0" class="state-box empty">
+    <mat-icon class="empty-icon">search_off</mat-icon>
+    <h2>Aucun résultat</h2>
+    <p>Aucune réclamation ne correspond aux filtres sélectionnés.</p>
+    <button class="btn-reset-full" (click)="resetFilters()">Réinitialiser les filtres</button>
+  </div>
+
+  <!-- ── Tableau ────────────────────────────────────────────── -->
+  <div
+    *ngIf="(activeView() === 'overdue' && !isLoadingOverdue() && overdueComplaints().length > 0) ||
+           (activeView() !== 'overdue' && !isLoading() && (activeView() === 'queue' ? adminQueue().length > 0 : filtered().length > 0))"
+    class="table-wrapper"
+    [class.table-searching]="isSearching()">
+
+    <table class="complaints-table">
+      <thead>
+        <tr>
+          <th>Ticket</th>
+          <th>Sujet</th>
+          <th>Catégorie</th>
+          <th>Statut</th>
+          <th>Priorité</th>
+          <th>Reporter</th>
+          <th>Date</th>
+          <th>Actions</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr
+          *ngFor="let c of (activeView() === 'queue' ? adminQueue() : activeView() === 'overdue' ? overdueComplaints() : filtered())"
+          class="table-row"
+          (click)="viewDetail(c.id)">
+
+          <td class="ticket-cell">{{ c.ticketNumber }}</td>
+
+          <td class="subject-cell">
+            <!-- Surlignage du terme recherché dans le sujet -->
+            <span class="subject-text" [innerHTML]="c.subject | searchHighlight:searchQuery()"></span>
+            <span class="desc-preview">{{ c.description | slice:0:55 }}...</span>
+          </td>
+
+          <td>{{ getCategoryLabel(c.category) }}</td>
+
+          <td>
+            <span class="status-badge"
+              [style.background]="getStatusColor(c.status) + '1a'"
+              [style.color]="getStatusColor(c.status)"
+              [style.border]="'1px solid ' + getStatusColor(c.status) + '40'">
+              {{ getStatusLabel(c.status) }}
+            </span>
+          </td>
+
+          <td>
+            <span class="priority-badge" [style.color]="getPriorityColor(c.priority)">
+              <span class="priority-dot" [style.background]="getPriorityColor(c.priority)"></span>
+              {{ getPriorityLabel(c.priority) }}
+            </span>
+          </td>
+
+          <td class="mono-cell">{{ c.reporterId | slice:0:8 }}…</td>
+          <td>{{ formatDate(c.createdAt) }}</td>
+
+          <td>
+            <button
+              class="btn-action"
+              (click)="viewDetail(c.id); $event.stopPropagation()"
+              title="Ouvrir">
+              <mat-icon>open_in_new</mat-icon>
+            </button>
+          </td>
+        </tr>
+      </tbody>
+    </table>
+
+    <!-- Overlay de chargement sur le tableau pendant le debounce -->
+    <div class="table-overlay" *ngIf="isSearching()">
+      <div class="overlay-spinner"></div>
+    </div>
+  </div>
+
+</div>

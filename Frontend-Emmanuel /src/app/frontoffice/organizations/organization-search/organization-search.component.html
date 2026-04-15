@@ -1,0 +1,144 @@
+<div class="org-search-page">
+  <div class="search-header">
+    <h1>Découvrir les organisations</h1>
+    <p>Trouvez des agences, startups et coopératives de freelances</p>
+  </div>
+
+  <!-- Filters -->
+  <div class="filters-bar">
+    <mat-form-field appearance="outline">
+      <mat-label>Rechercher</mat-label>
+      <input matInput [(ngModel)]="query" (keyup.enter)="search()" placeholder="Nom, spécialité...">
+      <mat-icon matSuffix>search</mat-icon>
+    </mat-form-field>
+
+    <mat-form-field appearance="outline">
+      <mat-label>Type</mat-label>
+      <mat-select [(ngModel)]="selectedType">
+        <mat-option value="">Tous</mat-option>
+        @for (t of types; track t) {
+          <mat-option [value]="t">{{ t }}</mat-option>
+        }
+      </mat-select>
+    </mat-form-field>
+
+    <mat-form-field appearance="outline">
+      <mat-label>Taille</mat-label>
+      <mat-select [(ngModel)]="selectedSize">
+        <mat-option value="">Toutes</mat-option>
+        @for (s of sizes; track s) {
+          <mat-option [value]="s">{{ s }}</mat-option>
+        }
+      </mat-select>
+    </mat-form-field>
+
+    <button mat-raised-button color="primary" (click)="search()">
+      <mat-icon>search</mat-icon> Rechercher
+    </button>
+    <button mat-stroked-button (click)="reset()">
+      <mat-icon>clear</mat-icon> Réinitialiser
+    </button>
+  </div>
+
+  <!-- Loading -->
+  @if (isLoading()) {
+    <div class="loading-center">
+      <mat-spinner diameter="48"></mat-spinner>
+    </div>
+  }
+
+  <!-- Results -->
+  @if (!isLoading()) {
+    @if (results().length === 0) {
+      <div class="empty-state">
+        <mat-icon>domain_disabled</mat-icon>
+        <p>Aucune organisation trouvée.</p>
+      </div>
+    } @else {
+      <div class="org-grid">
+        @for (org of results(); track org.id) {
+          <mat-card class="org-card" (click)="goToProfile(org.id)">
+            <div class="org-logo">
+              @if (org.logoUrl) {
+                <img [src]="org.logoUrl" [alt]="org.name">
+              } @else {
+                <mat-icon>domain</mat-icon>
+              }
+            </div>
+            <mat-card-content>
+              <h3>{{ org.name }}</h3>
+              <span class="badge badge-type">{{ org.type }}</span>
+              <span class="badge badge-size">{{ org.size }}</span>
+
+              @if (org.location) {
+                <p class="location"><mat-icon>place</mat-icon>{{ org.location }}</p>
+              }
+
+              <div class="rating">
+                <span class="stars">{{ stars(org.averageRating) }}</span>
+                <span class="review-count">({{ org.reviewCount }} avis)</span>
+              </div>
+
+              <div class="meta">
+                <span><mat-icon>people</mat-icon>{{ org.memberCount }} membres</span>
+                <span><mat-icon>check_circle</mat-icon>{{ org.completedProjectsCount }} projets</span>
+              </div>
+
+              @if (org.specialties.length > 0) {
+                <div class="specialties">
+                  @for (s of org.specialties.slice(0, 3); track s) {
+                    <mat-chip>{{ s }}</mat-chip>
+                  }
+                </div>
+              }
+            </mat-card-content>
+          </mat-card>
+        }
+      </div>
+
+      <!-- Pagination -->
+      @if (totalPages() > 1) {
+        <div class="pagination">
+          <button mat-icon-button (click)="prev()" [disabled]="currentPage() === 0">
+            <mat-icon>chevron_left</mat-icon>
+          </button>
+          <span>Page {{ currentPage() + 1 }} / {{ totalPages() }}</span>
+          <button mat-icon-button (click)="next()" [disabled]="currentPage() === totalPages() - 1">
+            <mat-icon>chevron_right</mat-icon>
+          </button>
+        </div>
+      }
+    }
+  }
+</div>
+
+<style>
+.org-search-page { max-width: 1200px; margin: 0 auto; padding: 24px; }
+.search-header { text-align: center; margin-bottom: 32px; }
+.search-header h1 { font-size: 2rem; margin-bottom: 8px; }
+.filters-bar { display: flex; gap: 16px; flex-wrap: wrap; align-items: center; margin-bottom: 32px; }
+.filters-bar mat-form-field { flex: 1; min-width: 180px; }
+.loading-center { display: flex; justify-content: center; padding: 48px; }
+.empty-state { text-align: center; padding: 64px; color: #888; }
+.empty-state mat-icon { font-size: 64px; height: 64px; width: 64px; }
+.org-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(280px, 1fr)); gap: 24px; }
+.org-card { cursor: pointer; transition: box-shadow 0.2s; padding: 8px; }
+.org-card:hover { box-shadow: 0 8px 24px rgba(0,0,0,.15); }
+.org-logo { text-align: center; padding: 16px 0; }
+.org-logo img { width: 80px; height: 80px; border-radius: 50%; object-fit: cover; }
+.org-logo mat-icon { font-size: 64px; height: 64px; width: 64px; color: #9e9e9e; }
+.org-card h3 { margin: 8px 0; font-size: 1.1rem; }
+.badge { display: inline-block; padding: 2px 8px; border-radius: 12px; font-size: 0.75rem; margin-right: 4px; margin-bottom: 8px; }
+.badge-type { background: #e3f2fd; color: #1565c0; }
+.badge-size { background: #f3e5f5; color: #6a1b9a; }
+.location { display: flex; align-items: center; gap: 4px; font-size: 0.85rem; color: #666; margin: 4px 0; }
+.location mat-icon { font-size: 16px; height: 16px; width: 16px; }
+.rating { display: flex; align-items: center; gap: 8px; margin: 8px 0; }
+.stars { color: #f9a825; letter-spacing: 2px; }
+.review-count { font-size: 0.8rem; color: #666; }
+.meta { display: flex; gap: 16px; font-size: 0.8rem; color: #555; margin: 8px 0; }
+.meta span { display: flex; align-items: center; gap: 4px; }
+.meta mat-icon { font-size: 14px; height: 14px; width: 14px; }
+.specialties { display: flex; flex-wrap: wrap; gap: 4px; margin-top: 8px; }
+.pagination { display: flex; justify-content: center; align-items: center; gap: 16px; margin-top: 32px; }
+</style>

@@ -1,0 +1,209 @@
+@if (isLoading()) {
+  <div style="display:flex;justify-content:center;padding:64px">
+    <mat-progress-spinner mode="indeterminate" diameter="40"></mat-progress-spinner>
+  </div>
+}
+
+@if (!isLoading() && org(); as o) {
+  <div class="settings-page">
+    <div class="settings-header">
+      <button mat-icon-button (click)="goToProfile()">
+        <mat-icon>arrow_back</mat-icon>
+      </button>
+      <div>
+        <h2>{{ o.name }}</h2>
+        <span class="status-chip">{{ o.status }}</span>
+      </div>
+    </div>
+
+    <mat-tab-group animationDuration="200ms">
+
+      <!-- ── Informations ─────────────────────────────── -->
+      <mat-tab label="Informations">
+        <div class="tab-body">
+          <mat-form-field appearance="outline" style="width:100%">
+            <mat-label>Nom</mat-label>
+            <input matInput [(ngModel)]="editForm.name">
+          </mat-form-field>
+          <mat-form-field appearance="outline" style="width:100%">
+            <mat-label>Description</mat-label>
+            <textarea matInput rows="4" [(ngModel)]="editForm.description"></textarea>
+          </mat-form-field>
+          <div class="row-2">
+            <mat-form-field appearance="outline">
+              <mat-label>Logo URL</mat-label>
+              <input matInput [(ngModel)]="editForm.logoUrl">
+            </mat-form-field>
+            <mat-form-field appearance="outline">
+              <mat-label>Site web</mat-label>
+              <input matInput [(ngModel)]="editForm.website">
+            </mat-form-field>
+          </div>
+          <div class="row-2">
+            <mat-form-field appearance="outline">
+              <mat-label>Localisation</mat-label>
+              <input matInput [(ngModel)]="editForm.location">
+            </mat-form-field>
+            <mat-form-field appearance="outline">
+              <mat-label>Taille</mat-label>
+              <mat-select [(ngModel)]="editForm.size">
+                @for (s of sizes; track s) { <mat-option [value]="s">{{ s }}</mat-option> }
+              </mat-select>
+            </mat-form-field>
+          </div>
+
+          <div class="specialties-field">
+            <label>Spécialités</label>
+            <mat-chip-grid #chipGrid>
+              @for (s of editSpecialties(); track s) {
+                <mat-chip-row (removed)="removeSpecialty(s)">
+                  {{ s }}<button matChipRemove><mat-icon>cancel</mat-icon></button>
+                </mat-chip-row>
+              }
+            </mat-chip-grid>
+            <mat-form-field appearance="outline" style="width:100%">
+              <input matInput placeholder="Ajouter..."
+                     [matChipInputFor]="chipGrid"
+                     [matChipInputSeparatorKeyCodes]="separators"
+                     (matChipInputTokenEnd)="addSpecialty($event)">
+            </mat-form-field>
+          </div>
+
+          <div class="visibility-row">
+            <label>Visibilité :</label>
+            @for (v of visibilities; track v) {
+              <button mat-stroked-button [color]="org()?.visibility === v ? 'primary' : undefined" (click)="setVisibility(v)">
+                {{ v }}
+              </button>
+            }
+          </div>
+
+          @if (saveError()) { <div class="error-msg">{{ saveError() }}</div> }
+          @if (saveSuccess()) { <div class="success-msg"><mat-icon>check</mat-icon> Modifications sauvegardées.</div> }
+
+          <button mat-raised-button color="primary" [disabled]="saveLoading()" (click)="saveInfo()">
+            <mat-icon>save</mat-icon> {{ saveLoading() ? 'Sauvegarde...' : 'Sauvegarder' }}
+          </button>
+        </div>
+      </mat-tab>
+
+      <!-- ── Portfolio ───────────────────────────────── -->
+      <mat-tab label="Portfolio">
+        <div class="tab-body">
+          <app-org-portfolio [orgId]="orgId" [canEdit]="true" />
+        </div>
+      </mat-tab>
+
+      <!-- ── Membres ─────────────────────────────────── -->
+      <mat-tab label="Membres">
+        <div class="tab-body">
+          <div class="member-list">
+            @for (m of members(); track m.id) {
+              <div class="member-row">
+                <div class="member-info">
+                  <mat-icon>person</mat-icon>
+                  <span>{{ m.userId.slice(0, 16) }}…</span>
+                  <span class="role-badge" [class]="'role-' + m.role.toLowerCase()">{{ roleLabel(m.role) }}</span>
+                </div>
+                @if (isOwner() && m.role === 'MEMBER') {
+                  <button mat-icon-button color="primary" (click)="promote(m.id)" matTooltip="Promouvoir Gestionnaire">
+                    <mat-icon>upgrade</mat-icon>
+                  </button>
+                }
+                @if (isOwner() && m.role !== 'OWNER') {
+                  <button mat-icon-button color="warn" (click)="remove(m.id)">
+                    <mat-icon>person_remove</mat-icon>
+                  </button>
+                }
+              </div>
+            }
+          </div>
+        </div>
+      </mat-tab>
+
+      <!-- ── Invitations ─────────────────────────────── -->
+      <mat-tab label="Invitations">
+        <div class="tab-body">
+          <h3>Inviter un membre</h3>
+          <div class="row-2">
+            <mat-form-field appearance="outline">
+              <mat-label>Email</mat-label>
+              <input matInput [(ngModel)]="inviteForm.invitedEmail">
+            </mat-form-field>
+            <mat-form-field appearance="outline">
+              <mat-label>Rôle proposé</mat-label>
+              <mat-select [(ngModel)]="inviteForm.proposedRole">
+                @for (r of roles; track r) { <mat-option [value]="r">{{ r }}</mat-option> }
+              </mat-select>
+            </mat-form-field>
+          </div>
+          @if (inviteError()) { <div class="error-msg">{{ inviteError() }}</div> }
+          @if (inviteSuccess()) { <div class="success-msg"><mat-icon>check</mat-icon> Invitation envoyée.</div> }
+          <button mat-raised-button color="primary" [disabled]="inviteLoading()" (click)="sendInvite()">
+            <mat-icon>send</mat-icon> Inviter
+          </button>
+
+          <mat-divider style="margin:20px 0"></mat-divider>
+          <h3>Invitations en attente</h3>
+          @if (invitations().length === 0) { <p class="empty-text">Aucune invitation en attente.</p> }
+          @for (inv of invitations(); track inv.id) {
+            <div class="invitation-row">
+              <span>{{ inv.invitedEmail ?? inv.invitedUserId }}</span>
+              <span class="role-sm">{{ inv.proposedRole }}</span>
+              <button mat-icon-button color="warn" (click)="cancelInvitation(inv.id)">
+                <mat-icon>cancel</mat-icon>
+              </button>
+            </div>
+          }
+        </div>
+      </mat-tab>
+
+      <!-- ── Candidatures ────────────────────────────── -->
+      <mat-tab label="Candidatures">
+        <div class="tab-body">
+          @if (isManager()) {
+            <app-org-applications-manager [orgId]="orgId" />
+          } @else {
+            <p class="empty-text">Droits insuffisants.</p>
+          }
+        </div>
+      </mat-tab>
+
+      <!-- ── Devis ───────────────────────────────────── -->
+      <mat-tab label="Devis">
+        <div class="tab-body">
+          @if (isManager()) {
+            <app-org-rfq-manager [orgId]="orgId" />
+          } @else {
+            <p class="empty-text">Droits insuffisants.</p>
+          }
+        </div>
+      </mat-tab>
+
+      <!-- ── Zone de danger ─────────────────────────── -->
+      <mat-tab label="Zone de danger">
+        <div class="tab-body danger-zone">
+          @if (!isOwner()) {
+            <p class="empty-text">Seul le propriétaire peut dissoudre l'organisation.</p>
+          } @else {
+            <div class="danger-card">
+              <h3><mat-icon>warning</mat-icon> Dissolution de l'organisation</h3>
+              <p>Cette action est irréversible. Tous les membres seront notifiés.</p>
+              <mat-form-field appearance="outline" style="width:100%">
+                <mat-label>Confirmez en tapant le nom : <strong>{{ o.name }}</strong></mat-label>
+                <input matInput [ngModel]="dissolveConfirmName()" (ngModelChange)="dissolveConfirmName.set($event)">
+              </mat-form-field>
+              @if (dissolveError()) { <div class="error-msg">{{ dissolveError() }}</div> }
+              <button mat-raised-button color="warn"
+                      [disabled]="dissolveLoading() || dissolveConfirmName() !== o.name"
+                      (click)="dissolve()">
+                <mat-icon>delete_forever</mat-icon> Dissoudre définitivement
+              </button>
+            </div>
+          }
+        </div>
+      </mat-tab>
+
+    </mat-tab-group>
+  </div>
+}

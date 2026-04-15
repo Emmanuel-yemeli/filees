@@ -1,0 +1,128 @@
+<div class="templates-page">
+  <div class="page-header">
+    <div>
+      <h2>Templates de réponse</h2>
+      <p>Réponses pré-rédigées utilisables par les agents dans les conversations.</p>
+    </div>
+    <button mat-raised-button color="primary" (click)="openCreate()">
+      <mat-icon>add</mat-icon> Nouveau template
+    </button>
+  </div>
+
+  <!-- Formulaire -->
+  @if (showForm()) {
+    <mat-card class="form-card">
+      <mat-card-header>
+        <mat-card-title>{{ editingId() ? 'Modifier le template' : 'Nouveau template' }}</mat-card-title>
+      </mat-card-header>
+      <mat-card-content>
+        <div class="form-row">
+          <mat-form-field appearance="outline" class="flex-2">
+            <mat-label>Titre du template *</mat-label>
+            <input matInput [(ngModel)]="form.title" placeholder="Ex: Accusé réception PAYMENT_ISSUE">
+          </mat-form-field>
+          <mat-form-field appearance="outline" class="flex-1">
+            <mat-label>Catégorie (optionnel)</mat-label>
+            <mat-select [(ngModel)]="form.category">
+              <mat-option value="">Toutes catégories</mat-option>
+              @for (c of categories; track c) {
+                <mat-option [value]="c">{{ c }}</mat-option>
+              }
+            </mat-select>
+          </mat-form-field>
+        </div>
+        <mat-form-field appearance="outline" style="width:100%">
+          <mat-label>Contenu du template *</mat-label>
+          <textarea matInput rows="6" [(ngModel)]="form.content"
+                    placeholder="Bonjour, nous avons bien reçu votre réclamation..."></textarea>
+          <mat-hint>Vous pouvez utiliser {{'{'}}{{'{'}}nom{{'}'}}{{'}'}}, {{'{'}}{{'{'}}ticket{{'}'}}{{'}'}}, etc. comme variables.</mat-hint>
+        </mat-form-field>
+      </mat-card-content>
+      <mat-card-actions align="end">
+        <button mat-button (click)="cancel()">Annuler</button>
+        <button mat-raised-button color="primary"
+                [disabled]="saving() || !form.title.trim() || !form.content.trim()"
+                (click)="save()">
+          @if (saving()) { <mat-spinner diameter="18"></mat-spinner> }
+          @else { <mat-icon>save</mat-icon> Enregistrer }
+        </button>
+      </mat-card-actions>
+    </mat-card>
+  }
+
+  <!-- Filtre -->
+  @if (!isLoading() && templates().length > 0) {
+    <mat-form-field appearance="outline" class="search-field">
+      <mat-label>Rechercher un template</mat-label>
+      <mat-icon matPrefix>search</mat-icon>
+      <input matInput [ngModel]="filter()" (ngModelChange)="filter.set($event)" placeholder="titre ou contenu...">
+    </mat-form-field>
+  }
+
+  <!-- Loading -->
+  @if (isLoading()) {
+    <div class="loading-center"><mat-spinner diameter="40"></mat-spinner></div>
+  }
+
+  <!-- Liste -->
+  <div class="templates-grid">
+    @for (t of filtered(); track t.id) {
+      <mat-card class="template-card">
+        <mat-card-content>
+          <div class="t-header">
+            <div>
+              <h3>{{ t.title }}</h3>
+              @if (t.category) {
+                <span class="cat-badge">{{ t.category }}</span>
+              }
+            </div>
+            <div class="t-actions">
+              <button mat-icon-button color="primary" (click)="openEdit(t)" title="Modifier">
+                <mat-icon>edit</mat-icon>
+              </button>
+              <button mat-icon-button color="warn" (click)="delete(t.id)" title="Supprimer">
+                <mat-icon>delete</mat-icon>
+              </button>
+            </div>
+          </div>
+          <mat-divider style="margin: 8px 0"></mat-divider>
+          <p class="t-content">{{ t.content }}</p>
+          <p class="t-date">Créé le {{ t.createdAt | date:'dd/MM/yyyy' }}</p>
+        </mat-card-content>
+      </mat-card>
+    }
+  </div>
+
+  @if (!isLoading() && filtered().length === 0) {
+    <div class="empty-state">
+      <mat-icon>library_books</mat-icon>
+      <p>{{ filter() ? 'Aucun template correspondant.' : 'Aucun template créé.' }}</p>
+      @if (!filter()) {
+        <button mat-raised-button color="primary" (click)="openCreate()">Créer le premier template</button>
+      }
+    </div>
+  }
+</div>
+
+<style>
+.templates-page { max-width: 1000px; margin: 0 auto; padding: 24px; }
+.page-header { display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 24px; }
+.page-header h2 { margin: 0; }
+.page-header p  { margin: 4px 0 0; color: #666; font-size: 0.9rem; }
+.form-card { margin-bottom: 24px; }
+.form-row { display: flex; gap: 16px; flex-wrap: wrap; margin-bottom: 8px; }
+.flex-1 { flex: 1; min-width: 180px; }
+.flex-2 { flex: 2; min-width: 240px; }
+.search-field { width: 100%; max-width: 420px; margin-bottom: 16px; }
+.loading-center { display: flex; justify-content: center; padding: 48px; }
+.templates-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(380px, 1fr)); gap: 16px; }
+.template-card {}
+.t-header { display: flex; justify-content: space-between; align-items: flex-start; }
+.t-header h3 { margin: 0 0 4px; font-size: 1rem; }
+.t-actions { display: flex; gap: 4px; flex-shrink: 0; }
+.cat-badge { display: inline-block; padding: 2px 8px; border-radius: 10px; font-size: 0.72rem; background: #e3f2fd; color: #1565c0; font-weight: 600; }
+.t-content { color: #555; font-size: 0.88rem; line-height: 1.5; white-space: pre-wrap; max-height: 100px; overflow: hidden; margin: 4px 0; }
+.t-date { font-size: 0.75rem; color: #aaa; margin: 6px 0 0; }
+.empty-state { text-align: center; padding: 64px; color: #888; }
+.empty-state mat-icon { font-size: 56px; height: 56px; width: 56px; display: block; margin: 0 auto 12px; }
+</style>

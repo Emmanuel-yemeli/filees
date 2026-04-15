@@ -1,0 +1,21 @@
+.page-container { max-width: 800px; margin: 0 auto; padding: 24px 16px; }
+.page-header { display: flex; align-items: center; margin-bottom: 24px; }
+.page-header h2 { display: flex; align-items: center; gap: 8px; margin: 0; font-size: 1.3rem; }
+.loading { display: flex; justify-content: center; padding: 48px; }
+.spinner { width: 32px; height: 32px; border: 3px solid #e5e7eb; border-top-color: #6366f1; border-radius: 50%; animation: spin 0.8s linear infinite; }
+@keyframes spin { to { transform: rotate(360deg); } }
+.empty { text-align: center; padding: 64px 16px; }
+.empty mat-icon { font-size: 48px; height: 48px; width: 48px; color: #d1d5db; }
+.empty h3 { color: #374151; margin: 16px 0 8px; }
+.empty p { color: #9ca3af; margin: 0 0 24px; }
+.apps-list { display: flex; flex-direction: column; gap: 12px; }
+.app-card { border: 1px solid #e5e7eb; border-radius: 10px; padding: 16px; }
+.app-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px; }
+.org-info { display: flex; align-items: center; gap: 6px; }
+.org-link { background: none; border: none; cursor: pointer; color: #6366f1; font-weight: 500; text-decoration: underline; }
+.status-chip { padding: 4px 12px; border-radius: 14px; font-size: 0.8rem; font-weight: 600; }
+.message { color: #374151; font-size: 0.9rem; margin: 0 0 10px; }
+.meta { display: flex; gap: 16px; font-size: 0.78rem; color: #9ca3af; }
+.meta span { display: inline-flex; align-items: center; gap: 3px; }
+.meta mat-icon { font-size: 14px; height: 14px; width: 14px; }
+.rejection { display: flex; align-items: center; gap: 6px; background: #fef2f2; color: #dc2626; border-radius: 6px; padding: 6px 10px; margin-top: 8px; font-size: 0.85rem; }

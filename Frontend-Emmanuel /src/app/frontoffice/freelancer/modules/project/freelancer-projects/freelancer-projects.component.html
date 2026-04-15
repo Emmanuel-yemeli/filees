@@ -1,0 +1,50 @@
+<div class="freelancer-projects-container">
+  <div class="page-header">
+    <h1>My Projects</h1>
+  </div>
+
+  @if (loading) {
+    <div class="loading">Loading...</div>
+  } @else if (projects.length === 0) {
+    <mat-card class="empty-state">
+      <mat-icon>inbox</mat-icon>
+      <h3>No Projects</h3>
+      <p>You have no assigned projects at the moment</p>
+    </mat-card>
+  } @else {
+    <div class="projects-grid">
+      @for (project of projects; track project.id) {
+        <mat-card class="project-card" [routerLink]="['/frontoffice/freelancer/my-projects', project.id]">
+          <div class="card-header">
+            <h3>Projet #{{ project.id?.substring(0, 8) }}</h3>
+            <mat-chip [color]="getStatusColor(project.status)" [highlighted]="true">
+              {{ project.status }}
+            </mat-chip>
+          </div>
+          
+          <div class="progress-section">
+            <label>Progress</label>
+            <mat-progress-bar mode="determinate" [value]="project.progress || 0"></mat-progress-bar>
+            <span class="progress-text">{{ project.progress || 0 }}%</span>
+          </div>
+
+          <div class="project-info">
+            <div class="info-row">
+              <mat-icon>schedule</mat-icon>
+              <span>{{ project.startDate | date:'dd/MM/yyyy' }} - {{ project.endDate | date:'dd/MM/yyyy' }}</span>
+            </div>
+            <div class="info-row">
+              <mat-icon>assignment</mat-icon>
+              <span>{{ project.milestones?.length || 0 }} milestones</span>
+            </div>
+          </div>
+
+          <button mat-raised-button color="primary" class="view-button">
+            View Project
+            <mat-icon>arrow_forward</mat-icon>
+          </button>
+        </mat-card>
+      }
+    </div>
+  }
+</div>

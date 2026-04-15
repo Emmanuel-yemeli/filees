@@ -1,0 +1,78 @@
+<div class="freelancer-project-dashboard-container">
+  @if (loading) {
+    <div class="loading">Loading...</div>
+  } @else if (project) {
+    <div class="page-header">
+      <button mat-icon-button routerLink="/frontoffice/freelancer/my-projects">
+        <mat-icon>arrow_back</mat-icon>
+      </button>
+      <h1>Project Dashboard</h1>
+      <mat-chip [highlighted]="true">{{ project.status }}</mat-chip>
+    </div>
+
+    <mat-card class="progress-card">
+      <h2>Overall Progress</h2>
+      <mat-progress-bar mode="determinate" [value]="project.progress || 0"></mat-progress-bar>
+      <p class="progress-text">{{ project.progress || 0 }}%</p>
+      
+      @if (getCurrentMilestone()) {
+        <div class="current-milestone-alert">
+          <mat-icon>assignment</mat-icon>
+          <div>
+            <strong>Current milestone:</strong> {{ getCurrentMilestone()?.title }}
+            <br>
+            <span class="deadline">{{ getDaysUntilDeadline(getCurrentMilestone()!) }} days until deadline</span>
+          </div>
+        </div>
+      }
+    </mat-card>
+
+    <mat-card class="milestones-card">
+      <h2>Milestones List</h2>
+      <mat-list>
+        @for (milestone of project.milestones; track milestone.id) {
+          <mat-list-item [routerLink]="['/frontoffice/freelancer/my-projects', project.id, 'milestones', milestone.id]" class="milestone-item">
+            <div class="milestone-content">
+              <div class="milestone-header">
+                <mat-icon [ngClass]="'status-' + milestone.status.toLowerCase()">
+                  {{ getMilestoneStatusIcon(milestone.status) }}
+                </mat-icon>
+                <div class="milestone-info">
+                  <h3>{{ milestone.orderIndex }}. {{ milestone.title }}</h3>
+                  <p>{{ milestone.description }}</p>
+                </div>
+              </div>
+              <div class="milestone-meta">
+                <mat-chip [highlighted]="true">{{ milestone.status }}</mat-chip>
+                <span class="due-date">
+                  <mat-icon>event</mat-icon>
+                  {{ milestone.dueDate | date:'dd/MM/yyyy' }}
+                </span>
+                @if (getDaysUntilDeadline(milestone) < 7 && milestone.status !== 'APPROVED') {
+                  <span class="warning">
+                    <mat-icon>warning</mat-icon>
+                    {{ getDaysUntilDeadline(milestone) }} days remaining
+                  </span>
+                }
+              </div>
+            </div>
+            <mat-icon class="chevron">chevron_right</mat-icon>
+          </mat-list-item>
+          <mat-divider></mat-divider>
+        }
+      </mat-list>
+    </mat-card>
+
+    <!-- Project Chat -->
+    @if (project.id) {
+      <app-project-chat
+        [projectId]="project.id"
+        [currentUserId]="currentUserId"
+        [currentUserName]="currentUserName"
+        [recipientId]="project.clientId">
+      </app-project-chat>
+    }
+  } @else {
+    <div class="error">Project not found</div>
+  }
+</div>

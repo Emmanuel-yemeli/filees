@@ -1,0 +1,159 @@
+<!-- Loading State -->
+<div class="loading-container" *ngIf="loading">
+  <div class="spinner"></div>
+  <p>{{ 'clientProjects.dashboard.loadingProject' | translate }}</p>
+</div>
+
+<!-- Error State -->
+<div class="error-container" *ngIf="!loading && !project">
+  <div class="error-icon">⚠️</div>
+  <h2>{{ 'clientProjects.dashboard.projectNotFound' | translate }}</h2>
+  <button class="btn-back-home" routerLink="/frontoffice/client/projects">
+    ← {{ 'clientProjects.dashboard.backToProjects' | translate }}
+  </button>
+</div>
+
+<!-- Main Dashboard -->
+<div class="dashboard-container" *ngIf="!loading && project">
+  <!-- Header -->
+  <div class="dashboard-header">
+    <div class="header-left">
+      <button class="btn-back" routerLink="/frontoffice/client/projects">
+        ← {{ 'clientProjects.dashboard.backToProjects' | translate }}
+      </button>
+      <div class="header-info">
+        <h1>{{ project.title }}</h1>
+        <div class="project-meta">
+          <span class="project-dates">
+            <span class="meta-icon">📅</span>
+            {{ project.startDate | date: 'dd/MM/yyyy' }} → {{ project.endDate | date: 'dd/MM/yyyy' }}
+          </span>
+          <span class="project-status" [ngClass]="'status-' + project.status">
+            {{ 'clientProjects.status.' + project.status | translate }}
+          </span>
+        </div>
+      </div>
+    </div>
+    <button class="btn-refresh" (click)="loadProject(project.id!)" [title]="'clientProjects.dashboard.refresh' | translate">
+      🔄 {{ 'clientProjects.dashboard.refresh' | translate }}
+    </button>
+  </div>
+
+  <!-- Progress Section -->
+  <div class="progress-section">
+    <div class="progress-header">
+      <h2>{{ 'clientProjects.dashboard.globalProgress' | translate }}</h2>
+      <span class="progress-value">{{ project.progress || 0 }}%</span>
+    </div>
+    <div class="progress-bar-track">
+      <div class="progress-bar-fill" [style.width.%]="project.progress || 0"></div>
+    </div>
+    <div class="progress-stats">
+      <span>{{ 'clientProjects.dashboard.validatedMilestones' | translate: {count: getApprovedCount(), total: project.milestones?.length || 0} }}</span>
+    </div>
+  </div>
+
+  <!-- Pending Validation Alert -->
+  <div class="alert alert-warning" *ngIf="getPendingValidationCount() > 0">
+    <span class="alert-icon">⚠️</span>
+    <div class="alert-content">
+      <strong>{{ 'clientProjects.dashboard.pendingValidationAlert' | translate: {count: getPendingValidationCount()} }}</strong>
+      <p>{{ 'clientProjects.dashboard.pendingValidationMessage' | translate }}</p>
+    </div>
+  </div>
+
+  <!-- Stats Row -->
+  <div class="stats-row">
+    <div class="stat-card">
+      <div class="stat-icon pending"><mat-icon>hourglass_empty</mat-icon></div>
+      <div class="stat-info">
+        <span class="stat-value">{{ getMilestoneCountByStatus('PENDING') }}</span>
+        <span class="stat-label">{{ 'clientProjects.status.PENDING' | translate }}</span>
+      </div>
+    </div>
+    <div class="stat-card">
+      <div class="stat-icon in-progress"><mat-icon>autorenew</mat-icon></div>
+      <div class="stat-info">
+        <span class="stat-value">{{ getMilestoneCountByStatus('IN_PROGRESS') }}</span>
+        <span class="stat-label">{{ 'clientProjects.status.IN_PROGRESS' | translate }}</span>
+      </div>
+    </div>
+    <div class="stat-card">
+      <div class="stat-icon submitted"><mat-icon>upload_file</mat-icon></div>
+      <div class="stat-info">
+        <span class="stat-value">{{ getPendingValidationCount() }}</span>
+        <span class="stat-label">{{ 'clientProjects.status.SUBMITTED' | translate }}</span>
+      </div>
+    </div>
+    <div class="stat-card">
+      <div class="stat-icon approved"><mat-icon>check_circle</mat-icon></div>
+      <div class="stat-info">
+        <span class="stat-value">{{ getApprovedCount() }}</span>
+        <span class="stat-label">{{ 'clientProjects.status.APPROVED' | translate }}</span>
+      </div>
+    </div>
+  </div>
+
+  <!-- Milestones Section -->
+  <div class="milestones-section">
+    <h2>{{ 'clientProjects.dashboard.projectMilestones' | translate }}</h2>
+
+    <div class="milestones-grid" *ngIf="project.milestones && project.milestones.length > 0">
+      <div
+        *ngFor="let milestone of project.milestones; let i = index"
+        class="milestone-card"
+        [class.active]="milestone.status === 'IN_PROGRESS' || milestone.status === 'SUBMITTED'"
+        [class.submitted]="milestone.status === 'SUBMITTED'"
+        [class.approved]="milestone.status === 'APPROVED'"
+        [class.rejected]="milestone.status === 'REJECTED'"
+        [routerLink]="['/frontoffice/client/projects', project.id, 'milestones', milestone.id]"
+      >
+        <div class="submitted-badge" *ngIf="milestone.status === 'SUBMITTED'">
+          {{ 'clientProjects.dashboard.toValidate' | translate }}
+        </div>
+
+        <div class="milestone-header">
+          <div class="milestone-number">{{ i + 1 }}</div>
+          <div class="milestone-status-icon"><mat-icon>{{ getMilestoneStatusIconEmoji(milestone.status) }}</mat-icon></div>
+        </div>
+
+        <h3 class="milestone-title">{{ milestone.title }}</h3>
+        <p class="milestone-description">{{ milestone.description }}</p>
+
+        <div class="milestone-footer">
+          <div class="milestone-status-badge" [ngClass]="'badge-' + milestone.status.toLowerCase()">
+            {{ 'clientProjects.status.' + milestone.status | translate }}
+          </div>
+          <div class="milestone-deadline" [ngClass]="getDeadlineClass(milestone)">
+            <span><mat-icon class="date-icon">event</mat-icon> {{ milestone.dueDate | date: 'dd/MM/yyyy' }}</span>
+            <span class="days-info">{{ getDaysLabel(milestone) }}</span>
+          </div>
+        </div>
+
+        <button class="btn-view-details" (click)="$event.stopPropagation();" [routerLink]="['/frontoffice/client/projects', project.id, 'milestones', milestone.id]">
+          {{ 'clientProjects.dashboard.viewDetails' | translate }} →
+        </button>
+      </div>
+    </div>
+
+    <div class="empty-milestones" *ngIf="!project.milestones || project.milestones.length === 0">
+      <p>{{ 'clientProjects.dashboard.noMilestones' | translate }}</p>
+    </div>
+  </div>
+
+  <!-- Requirements Section -->
+  <div class="requirements-section" *ngIf="project.requirements">
+    <h2>{{ 'clientProjects.dashboard.projectRequirements' | translate }}</h2>
+    <div class="requirements-content">{{ project.requirements }}</div>
+  </div>
+
+  <!-- Project Chat -->
+  @if (project.id) {
+    <app-project-chat
+      [projectId]="project.id"
+      [currentUserId]="currentUserId"
+      [currentUserName]="currentUserName"
+      [recipientId]="project.freelanceId">
+    </app-project-chat>
+  }
+</div>

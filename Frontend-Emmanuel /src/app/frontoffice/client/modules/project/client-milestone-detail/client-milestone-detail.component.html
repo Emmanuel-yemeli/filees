@@ -1,0 +1,73 @@
+<div class="client-milestone-detail-container">
+  @if (loading) {
+    <div class="loading">Loading...</div>
+  } @else if (milestone) {
+    <div class="page-header">
+      <button mat-icon-button [routerLink]="['/frontoffice/client/projects', projectId, 'dashboard']">
+        <mat-icon>arrow_back</mat-icon>
+      </button>
+      <h1>{{ milestone.title }}</h1>
+      <mat-chip [highlighted]="true">{{ milestone.status }}</mat-chip>
+    </div>
+
+    <mat-card class="milestone-info-card">
+      <h2>Description</h2>
+      <p>{{ milestone.description }}</p>
+      
+      <h3>Acceptance Criteria</h3>
+      <p>{{ milestone.acceptanceCriteria || 'No criteria specified' }}</p>
+      
+      <div class="date-info">
+        <strong>Deadline:</strong> {{ milestone.dueDate | date:'dd/MM/yyyy' }}
+      </div>
+    </mat-card>
+
+    @if (milestone.status === 'SUBMITTED') {
+      <mat-card class="submission-card">
+        <h2>Submitted Deliverables</h2>
+        @if (milestone.attachments) {
+          <div class="attachments">
+            <p>Submitted files available</p>
+          </div>
+        }
+        
+        <h3>Actions</h3>
+        <div class="actions-section">
+          <button mat-raised-button color="primary" (click)="approveMilestone()">
+            <mat-icon>check_circle</mat-icon>
+            Approve
+          </button>
+          
+          <div class="revision-section">
+            <mat-form-field appearance="outline" class="full-width">
+              <mat-label>Rejection Reason</mat-label>
+              <textarea matInput rows="3" [(ngModel)]="rejectionReason" placeholder="Describe what needs to be improved..."></textarea>
+            </mat-form-field>
+            <button mat-raised-button color="warn" (click)="requestRevisions()">
+              <mat-icon>edit</mat-icon>
+              Request Revisions
+            </button>
+          </div>
+        </div>
+      </mat-card>
+    }
+
+    @if (milestone.status === 'APPROVED') {
+      <mat-card class="success-card">
+        <mat-icon>check_circle</mat-icon>
+        <h2>Milestone Approved</h2>
+        <p>This milestone was approved on {{ milestone.approvedAt | date:'dd/MM/yyyy' }}</p>
+      </mat-card>
+    }
+
+    @if (milestone.status === 'REJECTED') {
+      <mat-card class="rejected-card">
+        <mat-icon>cancel</mat-icon>
+        <h2>Milestone Rejected</h2>
+        <p><strong>Reason:</strong> {{ milestone.rejectionReason }}</p>
+      </mat-card>
+    }
+  } @else {
+    <div class="error">Milestone not found</div>
+  }
+</div>

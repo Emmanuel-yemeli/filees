@@ -1,0 +1,195 @@
+@use '../../../../../styles/nexlance-theme.scss' as *;
+
+.admin-detail-container { padding: $space-8 $space-6; max-width: 1200px; margin: 0 auto; }
+
+.state-box { display: flex; justify-content: center; padding: $space-16;
+  .spinner { width: 40px; height: 40px; border: 3px solid $nexlance-gray-200; border-top-color: $nexlance-primary; border-radius: 50%; animation: spin 0.8s linear infinite; }
+}
+
+.page-header {
+  margin-bottom: $space-8;
+  .btn-back { display: flex; align-items: center; gap: $space-1; background: none; border: none; color: $nexlance-gray-500; font-size: $text-sm; cursor: pointer; padding: 0; margin-bottom: $space-4; transition: color $transition-fast; mat-icon { font-size: 18px; width: 18px; height: 18px; } &:hover { color: $nexlance-primary; } }
+  .header-main { margin-bottom: $space-4;
+    .ticket-row { display: flex; align-items: center; gap: $space-3; margin-bottom: $space-2;
+      .ticket { font-family: 'Courier New', Courier, monospace; font-size: $text-sm; color: $nexlance-gray-400; }
+      .status-badge { padding: 3px 12px; border-radius: 100px; font-size: $text-xs; font-weight: $font-semibold; }
+    }
+    h1 { font-size: $text-2xl; font-weight: $font-bold; color: $nexlance-gray-900; font-family: $font-family-heading; }
+  }
+  .header-admin-actions { display: flex; gap: $space-2; flex-wrap: wrap; }
+}
+
+.btn-admin {
+  display: flex; align-items: center; gap: $space-2;
+  padding: $space-2 $space-4; border-radius: $radius-lg;
+  font-size: $text-sm; font-weight: $font-medium; cursor: pointer;
+  transition: all $transition-fast;
+  mat-icon { font-size: 16px; width: 16px; height: 16px; }
+
+  &.close-btn  { background: #eff6ff; border: 1.5px solid #93c5fd; color: #1d4ed8; &:hover { background: #1d4ed8; color: white; } }
+  &.assign-btn { background: #fefce8; border: 1.5px solid #fde047; color: #854d0e; &:hover { background: #fde047; color: #854d0e; } }
+  &.delete-btn { background: #fef2f2; border: 1.5px solid #fca5a5; color: #dc2626; &:hover { background: #dc2626; color: white; } }
+}
+
+.layout { display: grid; grid-template-columns: 1fr 280px; gap: $space-6; align-items: start; @media (max-width: 900px) { grid-template-columns: 1fr; } }
+
+.card {
+  background: white; border-radius: $radius-xl; border: 1px solid $nexlance-gray-100;
+  padding: $space-6; box-shadow: 0 1px 4px rgba(0,0,0,0.05); margin-bottom: $space-5;
+
+  .card-title { display: flex; align-items: center; gap: $space-2; font-size: $text-base; font-weight: $font-semibold; color: $nexlance-gray-800; margin-bottom: $space-4; mat-icon { font-size: 18px; width: 18px; height: 18px; color: $nexlance-primary; } }
+}
+
+.info-grid { display: grid; grid-template-columns: 1fr 1fr; gap: $space-4; margin-bottom: $space-4;
+  .info-item { display: flex; flex-direction: column; gap: 3px; }
+  .lbl { font-size: $text-xs; color: $nexlance-gray-400; font-weight: $font-medium; }
+  .val { font-size: $text-sm; color: $nexlance-gray-800; font-weight: $font-medium; &.mono { font-family: 'Courier New', Courier, monospace; font-size: $text-xs; word-break: break-all; } }
+}
+
+.desc-block { .lbl { display: block; font-size: $text-xs; color: $nexlance-gray-400; margin-bottom: $space-2; } p { font-size: $text-sm; color: $nexlance-gray-700; line-height: 1.7; } }
+
+.resolution-block { display: flex; gap: $space-3; margin-top: $space-4; padding: $space-4; background: #f0fdf4; border-radius: $radius-lg; border-left: 3px solid #22c55e; mat-icon { color: #22c55e; flex-shrink: 0; } strong { display: block; color: #15803d; font-size: $text-sm; margin-bottom: 3px; } p { font-size: $text-sm; color: #166534; } }
+
+.actions-card .actions-row { display: flex; gap: $space-3; }
+.action-group { position: relative; }
+.action-btn { display: flex; align-items: center; gap: $space-2; padding: $space-2 $space-4; background: white; border: 1.5px solid $nexlance-gray-200; border-radius: $radius-lg; font-size: $text-sm; font-weight: $font-medium; color: $nexlance-gray-700; cursor: pointer; transition: all $transition-fast; mat-icon { font-size: 16px; width: 16px; height: 16px; } &:hover { border-color: $nexlance-primary; color: $nexlance-primary; } }
+.dropdown { position: absolute; top: calc(100% + 6px); left: 0; z-index: 10; background: white; border: 1px solid $nexlance-gray-200; border-radius: $radius-lg; box-shadow: 0 8px 24px rgba(0,0,0,.12); min-width: 180px; overflow: hidden;
+  .dropdown-item { display: flex; align-items: center; gap: $space-2; padding: $space-3 $space-4; font-size: $text-sm; color: $nexlance-gray-700; cursor: pointer; background: none; border: none; width: 100%; text-align: left; transition: background $transition-fast; .dot { width: 8px; height: 8px; border-radius: 50%; } .check { margin-left: auto; font-size: 16px; width: 16px; height: 16px; color: $nexlance-primary; } &:hover { background: $nexlance-gray-50; } &.current { background: rgba($nexlance-primary,.05); color: $nexlance-primary; font-weight: $font-semibold; } }
+}
+
+.messages-list { max-height: 380px; overflow-y: auto; margin-bottom: $space-4; padding: $space-2; .no-msgs { display: flex; flex-direction: column; align-items: center; padding: $space-8; color: $nexlance-gray-400; mat-icon { font-size: 36px; width: 36px; height: 36px; margin-bottom: $space-2; } p { font-size: $text-sm; } } }
+
+.bubble-wrap { display: flex; margin-bottom: $space-3;
+  &.internal .bubble { background: #fef9c3; border: 1px solid #fde68a; border-radius: 4px $radius-xl $radius-xl $radius-xl; }
+  .bubble { max-width: 80%; padding: $space-3 $space-4; background: $nexlance-gray-100; border-radius: 4px $radius-xl $radius-xl $radius-xl; }
+  .bubble-meta { display: flex; align-items: center; gap: $space-3; margin-bottom: $space-1; .sender { font-size: $text-xs; font-weight: $font-semibold; color: $nexlance-gray-600; } .note-badge { font-size: 10px; padding: 1px 6px; background: #fde68a; color: #92400e; border-radius: 4px; font-weight: $font-semibold; } .time { font-size: $text-xs; color: $nexlance-gray-400; } }
+  p { font-size: $text-sm; line-height: 1.5; color: $nexlance-gray-800; }
+}
+
+.input-area { display: flex; gap: $space-3; align-items: flex-end; padding-top: $space-4; border-top: 1px solid $nexlance-gray-100;
+  .msg-input { flex: 1; padding: $space-3; border: 1.5px solid $nexlance-gray-200; border-radius: $radius-lg; font-size: $text-sm; font-family: $font-family-base; resize: none; &:focus { outline: none; border-color: $nexlance-primary; } }
+  .btn-send { width: 44px; height: 44px; border-radius: 50%; background: $nexlance-primary; color: white; border: none; cursor: pointer; display: flex; align-items: center; justify-content: center; transition: all $transition-fast; mat-icon { font-size: 20px; width: 20px; height: 20px; } &:hover:not(:disabled) { background: $nexlance-primary-dark; } &:disabled { background: $nexlance-gray-200; cursor: not-allowed; } }
+}
+
+.info-side {
+  .side-item { display: flex; flex-direction: column; gap: 3px; margin-bottom: $space-3; .lbl { font-size: $text-xs; color: $nexlance-gray-400; } span:last-child { font-size: $text-sm; color: $nexlance-gray-800; } }
+  .status-badge.sm { display: inline-block; padding: 2px 10px; border-radius: 100px; font-size: $text-xs; font-weight: $font-semibold; }
+
+  .close-block { margin-top: $space-5; padding-top: $space-4; border-top: 1px solid $nexlance-gray-100; }
+  .close-hint { font-size: $text-xs; color: $nexlance-gray-500; margin-bottom: $space-3; }
+  .btn-close-full { width: 100%; display: flex; align-items: center; justify-content: center; gap: $space-2; padding: $space-3; background: #eff6ff; border: 1.5px solid #93c5fd; border-radius: $radius-lg; color: #1d4ed8; font-size: $text-sm; font-weight: $font-semibold; cursor: pointer; transition: all $transition-fast; mat-icon { font-size: 16px; width: 16px; height: 16px; } &:hover { background: #1d4ed8; color: white; border-color: #1d4ed8; } }
+}
+
+// ── Modals ───────────────────────────────────────────────────
+
+.modal-overlay { position: fixed; inset: 0; background: rgba(0,0,0,.5); display: flex; align-items: center; justify-content: center; z-index: 100; }
+
+.modal {
+  background: white; border-radius: $radius-2xl; width: 480px; max-width: 95vw;
+  box-shadow: 0 20px 60px rgba(0,0,0,.2);
+
+  &.confirm { padding: $space-8; text-align: center; .confirm-icon { font-size: 48px; width: 48px; height: 48px; margin-bottom: $space-4; } .close-icon { color: #1d4ed8; } .delete-icon { color: #dc2626; } h2 { font-size: $text-xl; font-weight: $font-semibold; color: $nexlance-gray-900; margin-bottom: $space-3; } p { font-size: $text-sm; color: $nexlance-gray-500; margin-bottom: $space-6; } }
+
+  .confirm-actions { display: flex; justify-content: center; gap: $space-3; }
+  .btn-cancel { padding: $space-2 $space-6; background: white; border: 1.5px solid $nexlance-gray-200; border-radius: $radius-lg; font-size: $text-sm; cursor: pointer; &:hover { border-color: $nexlance-gray-400; } }
+  .btn-confirm { display: flex; align-items: center; gap: $space-2; padding: $space-2 $space-6; border: none; border-radius: $radius-lg; font-size: $text-sm; font-weight: $font-semibold; cursor: pointer; transition: all $transition-fast; mat-icon { font-size: 16px; width: 16px; height: 16px; }
+    &.close  { background: #1d4ed8; color: white; &:hover { background: #1e40af; } }
+    &.delete { background: #dc2626; color: white; &:hover:not(:disabled) { background: #b91c1c; } &:disabled { opacity: 0.5; cursor: not-allowed; } }
+  }
+
+  &.assign { .modal-header { display: flex; align-items: center; justify-content: space-between; padding: $space-5 $space-6; border-bottom: 1px solid $nexlance-gray-100; h2 { display: flex; align-items: center; gap: $space-2; font-size: $text-lg; font-weight: $font-semibold; mat-icon { color: $nexlance-primary; } } .modal-close { background: none; border: none; cursor: pointer; color: $nexlance-gray-400; width: 32px; height: 32px; border-radius: 50%; display: flex; align-items: center; justify-content: center; &:hover { background: $nexlance-gray-100; } } }
+    .modal-body { padding: $space-5; max-height: 400px; overflow-y: auto; }
+  }
+
+  .agents-list { display: flex; flex-direction: column; gap: $space-2;
+    .agent-item { display: flex; align-items: center; gap: $space-3; padding: $space-3; border-radius: $radius-lg; border: 1.5px solid $nexlance-gray-100; cursor: pointer; transition: all $transition-fast; &:hover { border-color: $nexlance-primary; background: rgba($nexlance-primary,.04); } &.current { border-color: #22c55e; background: #f0fdf4; } .agent-avatar { width: 36px; height: 36px; border-radius: 50%; background: rgba($nexlance-primary,.1); color: $nexlance-primary; display: flex; align-items: center; justify-content: center; font-size: $text-sm; font-weight: $font-bold; flex-shrink: 0; } .agent-info { flex: 1; } .agent-name { font-size: $text-sm; font-weight: $font-medium; color: $nexlance-gray-800; display: block; } .agent-specs { display: flex; gap: 4px; margin-top: 3px; flex-wrap: wrap; } .spec-chip { font-size: 10px; padding: 1px 6px; background: rgba($nexlance-primary,.1); color: $nexlance-primary; border-radius: 4px; } .check-icon { color: #22c55e; font-size: 20px; width: 20px; height: 20px; } }
+    .no-agents { text-align: center; padding: $space-6; color: $nexlance-gray-400; font-size: $text-sm; }
+  }
+}
+
+// Bouton Export PDF dans le header
+.export-btn {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  padding: 8px 14px;
+  background: #dc2626;
+  color: white;
+  border: none;
+  border-radius: 8px;
+  font-size: 13px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.15s ease;
+
+  mat-icon { font-size: 16px; width: 16px; height: 16px; }
+
+  &:hover:not(:disabled) {
+    background: #b91c1c;
+    transform: translateY(-1px);
+    box-shadow: 0 4px 12px rgba(220, 38, 38, 0.35);
+  }
+
+  &:disabled {
+    opacity: 0.65;
+    cursor: not-allowed;
+    transform: none;
+  }
+}
+
+// Bouton Export PDF dans la sidebar
+.export-block {
+  margin: 12px 0;
+  padding: 12px 0;
+  border-top: 1px solid #f3f4f6;
+  border-bottom: 1px solid #f3f4f6;
+}
+
+.btn-export-sidebar {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  width: 100%;
+  padding: 10px 16px;
+  background: #fee2e2;
+  color: #dc2626;
+  border: 1.5px solid #fca5a5;
+  border-radius: 10px;
+  font-size: 13px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.15s ease;
+
+  mat-icon { font-size: 16px; width: 16px; height: 16px; }
+
+  &:hover:not(:disabled) {
+    background: #dc2626;
+    color: white;
+    border-color: #dc2626;
+  }
+
+  &:disabled {
+    opacity: 0.6;
+    cursor: not-allowed;
+  }
+}
+
+// Spinner inline dans les boutons
+.btn-spinner-sm {
+  width: 14px;
+  height: 14px;
+  border: 2px solid rgba(255, 255, 255, 0.4);
+  border-top-color: white;
+  border-radius: 50%;
+  animation: spin 0.7s linear infinite;
+  flex-shrink: 0;
+}
+
+// Variante pour sidebar (fond clair)
+.btn-export-sidebar .btn-spinner-sm {
+  border: 2px solid rgba(220, 38, 38, 0.3);
+  border-top-color: #dc2626;
+}
+
+@keyframes spin { to { transform: rotate(360deg); } }

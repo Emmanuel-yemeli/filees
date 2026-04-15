@@ -1,0 +1,209 @@
+@if (isLoading()) {
+  <div class="loading-container">
+    <mat-progress-spinner mode="indeterminate" diameter="48"></mat-progress-spinner>
+  </div>
+}
+
+@if (!isLoading() && org(); as o) {
+  <div class="profile-page">
+
+    <!-- Header Banner -->
+    <div class="profile-header">
+      <div class="header-content">
+        <div class="org-logo">
+          @if (o.logoUrl) {
+            <img [src]="o.logoUrl" [alt]="o.name">
+          } @else {
+            <mat-icon>business</mat-icon>
+          }
+        </div>
+        <div class="org-main">
+          <div class="org-title-row">
+            <h1>{{ o.name }}</h1>
+            <span class="type-badge">{{ o.type }}</span>
+            @if (o.status === 'ACTIVE') {
+              <span class="active-badge"><mat-icon>verified</mat-icon> Vérifiée</span>
+            }
+          </div>
+          <!-- Badges widget -->
+          <app-org-badges [orgId]="orgId" />
+          <div class="org-meta">
+            @if (o.location) { <span><mat-icon>location_on</mat-icon>{{ o.location }}</span> }
+            @if (o.website) { <a [href]="o.website" target="_blank"><mat-icon>language</mat-icon>Site web</a> }
+            <span><mat-icon>group</mat-icon>{{ members().length }} membre(s)</span>
+            <span><mat-icon>star</mat-icon>{{ o.averageRating | number:'1.1-1' }} / 5 ({{ o.reviewCount }} avis)</span>
+            <span><mat-icon>check_circle</mat-icon>{{ o.completedProjectsCount }} projets</span>
+          </div>
+        </div>
+        <div class="header-actions">
+          @if (isMyOrg()) {
+            <button mat-raised-button color="primary" (click)="goToSettings()">
+              <mat-icon>settings</mat-icon> Gérer
+            </button>
+          }
+          @if (isLoggedIn && !isMyOrg() && o.status === 'ACTIVE') {
+            <app-apply-to-org [orgId]="orgId" />
+            @if (isClient) {
+              <app-submit-rfq [orgId]="orgId" />
+            }
+          }
+        </div>
+      </div>
+    </div>
+
+    <!-- Tabs -->
+    <div class="tabs-container">
+      <mat-tab-group animationDuration="200ms">
+
+        <!-- Tab 1: À propos -->
+        <mat-tab label="À propos">
+          <div class="tab-content">
+            @if (o.description) {
+              <section class="about-section">
+                <h3>Description</h3>
+                <p>{{ o.description }}</p>
+              </section>
+            }
+
+            @if (o.specialties.length > 0) {
+              <section class="about-section">
+                <h3>Spécialités</h3>
+                <mat-chip-set>
+                  @for (s of o.specialties; track s) {
+                    <mat-chip>{{ s }}</mat-chip>
+                  }
+                </mat-chip-set>
+              </section>
+            }
+
+            <section class="about-section">
+              <h3>Informations</h3>
+              <div class="info-grid">
+                <div class="info-item"><span>Type</span><strong>{{ o.type }}</strong></div>
+                <div class="info-item"><span>Taille</span><strong>{{ o.size }}</strong></div>
+                @if (o.location) { <div class="info-item"><span>Localisation</span><strong>{{ o.location }}</strong></div> }
+                <div class="info-item"><span>Membre depuis</span><strong>{{ o.createdAt | date:'MMMM yyyy' }}</strong></div>
+              </div>
+            </section>
+          </div>
+        </mat-tab>
+
+        <!-- Tab 2: Portfolio -->
+        <mat-tab label="Portfolio">
+          <div class="tab-content">
+            <app-org-portfolio [orgId]="orgId" [canEdit]="isMyOrg()" />
+          </div>
+        </mat-tab>
+
+        <!-- Tab 3: Membres -->
+        <mat-tab label="Membres">
+          <div class="tab-content">
+            <div class="members-list">
+              @for (m of members(); track m.id) {
+                <div class="member-item">
+                  <div class="member-avatar"><mat-icon>person</mat-icon></div>
+                  <div class="member-info">
+                    <span class="member-id">{{ m.userId.slice(0, 16) }}…</span>
+                    <span class="member-role" [class]="'role-' + m.role.toLowerCase()">{{ m.role }}</span>
+                  </div>
+                </div>
+              }
+            </div>
+          </div>
+        </mat-tab>
+
+        <!-- Tab 4: Avis -->
+        <mat-tab label="Avis ({{ reviews().length }})">
+          <div class="tab-content">
+            @if (isClient && !reviewSuccess()) {
+              @if (!showReviewForm()) {
+                <button mat-stroked-button color="primary" (click)="showReviewForm.set(true)" style="margin-bottom:16px">
+                  <mat-icon>rate_review</mat-icon> Laisser un avis
+                </button>
+              } @else {
+                <div class="review-form">
+                  <h4>Votre évaluation</h4>
+                  <div class="ratings-grid">
+                    <div class="rating-row">
+                      <label>Qualité</label>
+                      <input type="range" min="1" max="5" [(ngModel)]="newReview.qualityRating">
+                      <span>{{ newReview.qualityRating }}/5</span>
+                    </div>
+                    <div class="rating-row">
+                      <label>Communication</label>
+                      <input type="range" min="1" max="5" [(ngModel)]="newReview.communicationRating">
+                      <span>{{ newReview.communicationRating }}/5</span>
+                    </div>
+                    <div class="rating-row">
+                      <label>Délais</label>
+                      <input type="range" min="1" max="5" [(ngModel)]="newReview.deadlineRating">
+                      <span>{{ newReview.deadlineRating }}/5</span>
+                    </div>
+                    <div class="rating-row">
+                      <label>Rapport qualité/prix</label>
+                      <input type="range" min="1" max="5" [(ngModel)]="newReview.valueRating">
+                      <span>{{ newReview.valueRating }}/5</span>
+                    </div>
+                  </div>
+                  <mat-form-field appearance="outline" style="width:100%">
+                    <mat-label>Commentaire (optionnel)</mat-label>
+                    <textarea matInput rows="3" [(ngModel)]="newReview.comment"></textarea>
+                  </mat-form-field>
+                  <div class="review-actions">
+                    <button mat-button (click)="showReviewForm.set(false)">Annuler</button>
+                    <button mat-raised-button color="primary" [disabled]="reviewSubmitting()" (click)="submitReview()">
+                      <mat-icon>send</mat-icon> Publier
+                    </button>
+                  </div>
+                </div>
+              }
+            }
+
+            @if (reviews().length === 0) {
+              <div class="empty-reviews"><mat-icon>rate_review</mat-icon><p>Aucun avis pour l'instant.</p></div>
+            }
+
+            @for (r of reviews(); track r.id) {
+              <div class="review-card">
+                <div class="review-header">
+                  <div class="stars">{{ stars(r.averageRating) }}</div>
+                  <span class="review-date">{{ r.createdAt | date:'dd/MM/yyyy' }}</span>
+                  @if (!r.reported && !isMyOrg()) {
+                    <button mat-icon-button (click)="reportReview(r.id)" matTooltip="Signaler">
+                      <mat-icon>flag</mat-icon>
+                    </button>
+                  }
+                </div>
+                <p class="review-text">{{ r.comment }}</p>
+                @if (r.ownerReply) {
+                  <div class="owner-reply">
+                    <mat-icon>reply</mat-icon>
+                    <p>{{ r.ownerReply }}</p>
+                  </div>
+                }
+                @if (isMyOrg() && !r.ownerReply && replyingReviewId() !== r.id) {
+                  <button mat-stroked-button (click)="startReply(r.id)">
+                    <mat-icon>reply</mat-icon> Répondre
+                  </button>
+                }
+                @if (replyingReviewId() === r.id) {
+                  <div class="reply-form">
+                    <mat-form-field appearance="outline" style="width:100%">
+                      <mat-label>Votre réponse</mat-label>
+                      <textarea matInput rows="2" [ngModel]="replyText()" (ngModelChange)="replyText.set($event)"></textarea>
+                    </mat-form-field>
+                    <button mat-raised-button color="primary" (click)="submitReply(r.id)">
+                      <mat-icon>send</mat-icon> Publier
+                    </button>
+                  </div>
+                }
+              </div>
+            }
+          </div>
+        </mat-tab>
+
+      </mat-tab-group>
+    </div>
+
+  </div>
+}

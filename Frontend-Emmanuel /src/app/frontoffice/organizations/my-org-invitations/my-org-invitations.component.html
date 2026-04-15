@@ -1,0 +1,78 @@
+<div class="invitations-page">
+  <h2>Invitations à des organisations</h2>
+  <p class="subtitle">Invitations en attente de votre réponse</p>
+
+  @if (isLoading()) {
+    <div class="loading-center"><mat-spinner diameter="40"></mat-spinner></div>
+  }
+
+  @if (!isLoading() && invitations().length === 0) {
+    <div class="empty-state">
+      <mat-icon>mail_outline</mat-icon>
+      <p>Aucune invitation en attente.</p>
+    </div>
+  }
+
+  <div class="inv-list">
+    @for (inv of invitations(); track inv.id) {
+      <mat-card class="inv-card">
+        <mat-card-content>
+          <div class="inv-header">
+            <div class="org-info">
+              @if (inv.organizationLogoUrl) {
+                <img [src]="inv.organizationLogoUrl" [alt]="inv.organizationName" class="org-logo">
+              } @else {
+                <div class="org-logo-placeholder"><mat-icon>domain</mat-icon></div>
+              }
+              <div>
+                <h3>{{ inv.organizationName ?? inv.organizationId }}</h3>
+                <p>Rôle proposé : <span class="role-badge role-{{ inv.proposedRole.toLowerCase() }}">{{ roleLabel(inv.proposedRole) }}</span></p>
+                <p class="expires">Expire le {{ inv.expiresAt | date:'dd/MM/yyyy' }}</p>
+              </div>
+            </div>
+          </div>
+
+          <mat-divider style="margin: 12px 0"></mat-divider>
+
+          <div class="inv-actions">
+            <button mat-raised-button color="primary"
+                    [disabled]="responding() === inv.id"
+                    (click)="respond(inv, true)">
+              @if (responding() === inv.id) { <mat-spinner diameter="18"></mat-spinner> }
+              @else { <mat-icon>check</mat-icon> Accepter }
+            </button>
+            <button mat-stroked-button color="warn"
+                    [disabled]="responding() === inv.id"
+                    (click)="respond(inv, false)">
+              <mat-icon>close</mat-icon> Refuser
+            </button>
+          </div>
+        </mat-card-content>
+      </mat-card>
+    }
+  </div>
+</div>
+
+<style>
+.invitations-page { max-width: 700px; margin: 0 auto; padding: 24px; }
+.invitations-page h2 { margin-bottom: 4px; }
+.subtitle { color: #666; margin-bottom: 24px; }
+.loading-center { display: flex; justify-content: center; padding: 48px; }
+.empty-state { text-align: center; padding: 64px; color: #888; }
+.empty-state mat-icon { font-size: 56px; height: 56px; width: 56px; display: block; margin: 0 auto 12px; }
+.inv-list { display: flex; flex-direction: column; gap: 16px; }
+.inv-card { }
+.inv-header { display: flex; justify-content: space-between; align-items: flex-start; }
+.org-info { display: flex; gap: 16px; align-items: flex-start; }
+.org-logo { width: 56px; height: 56px; border-radius: 8px; object-fit: cover; }
+.org-logo-placeholder { width: 56px; height: 56px; border-radius: 8px; background: #eeeeee; display: flex; align-items: center; justify-content: center; }
+.org-logo-placeholder mat-icon { color: #bdbdbd; }
+.org-info h3 { margin: 0 0 4px; }
+.org-info p { margin: 2px 0; font-size: 0.9rem; color: #555; }
+.expires { font-size: 0.8rem; color: #888; }
+.role-badge { display: inline-block; padding: 2px 8px; border-radius: 10px; font-size: 0.75rem; font-weight: 600; }
+.role-owner   { background: #fff3e0; color: #e65100; }
+.role-manager { background: #e8eaf6; color: #283593; }
+.role-member  { background: #f5f5f5; color: #555; }
+.inv-actions { display: flex; gap: 12px; }
+</style>

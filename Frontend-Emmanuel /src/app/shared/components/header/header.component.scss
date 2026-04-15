@@ -1,0 +1,450 @@
+.app-header {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  z-index: 1000;
+  background: linear-gradient(135deg, #1E40AF 0%, #3B82F6 50%, #0EA5E9 100%);
+  box-shadow: 0 4px 12px rgba(30, 64, 175, 0.25);
+  padding: 8px 0;
+}
+
+.header-container {
+  width: 100%;
+  max-width: 1400px;
+  margin: 0 auto;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 0 24px;
+}
+
+.logo-section {
+  display: flex;
+  align-items: center;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  padding: 4px;
+  border-radius: 8px;
+
+  &:hover {
+    transform: scale(1.05);
+    background-color: rgba(255, 255, 255, 0.1);
+  }
+
+  .logo-full {
+    height: 45px;
+    width: auto;
+    display: block;
+    
+    @media (max-width: 768px) {
+      display: none;
+    }
+  }
+
+  .logo-icon-mobile {
+    height: 40px;
+    width: 40px;
+    display: none;
+    
+    @media (max-width: 768px) {
+      display: block;
+    }
+  }
+}
+
+.nav-section {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  flex: 1;
+  justify-content: center;
+
+  button {
+    color: white;
+    font-weight: 500;
+    border-radius: 8px;
+    padding: 8px 16px;
+    transition: all 0.3s ease;
+    
+    mat-icon {
+      margin-right: 6px;
+    }
+
+    &:hover {
+      background-color: rgba(255, 255, 255, 0.15);
+      transform: translateY(-2px);
+    }
+  }
+
+  .job-offers-btn {
+    position: relative;
+    display: flex;
+    align-items: center;
+    gap: 4px;
+
+    .dropdown-icon {
+      margin-right: 0;
+      margin-left: 2px;
+      transition: transform 0.3s ease;
+    }
+
+    &:hover .dropdown-icon {
+      transform: rotate(180deg);
+    }
+  }
+}
+
+.user-section {
+  display: flex;
+  align-items: center;
+}
+
+.user-button {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 6px 16px;
+  border-radius: 24px;
+  transition: all 0.3s ease;
+  color: white;
+  border: 1px solid rgba(255, 255, 255, 0.2);
+
+  &:hover {
+    background-color: rgba(255, 255, 255, 0.15);
+    border-color: rgba(255, 255, 255, 0.4);
+    transform: translateY(-2px);
+  }
+  
+  mat-icon {
+    color: white;
+  }
+}
+
+.user-avatar {
+  width: 36px;
+  height: 36px;
+  border-radius: 50%;
+  background: linear-gradient(135deg, #F97316 0%, #FBBF24 100%);
+  color: white;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-weight: 700;
+  font-size: 14px;
+  letter-spacing: 0.5px;
+  border: 2px solid rgba(255, 255, 255, 0.3);
+}
+
+.user-name {
+  font-weight: 500;
+  max-width: 150px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  color: white;
+
+  @media (max-width: 768px) {
+    display: none;
+  }
+}
+
+// Styles du menu - Design Modal Moderne
+::ng-deep .user-menu {
+  margin-top: 12px;
+  
+  .mat-mdc-menu-content {
+    padding: 0 !important;
+    border-radius: 16px !important;
+    box-shadow: 0 12px 40px rgba(30, 64, 175, 0.25) !important;
+    overflow: hidden;
+  }
+  
+  .mat-mdc-menu-panel {
+    min-width: 320px !important;
+    max-width: 400px !important;
+    border-radius: 16px !important;
+  }
+}
+
+.user-info {
+  padding: 28px 24px;
+  background: linear-gradient(135deg, #1E40AF 0%, #3B82F6 50%, #0EA5E9 100%);
+  color: white;
+  display: flex;
+  gap: 16px;
+  align-items: center;
+  position: relative;
+  overflow: hidden;
+  
+  // Effet de brillance
+  &::before {
+    content: '';
+    position: absolute;
+    top: -50%;
+    right: -50%;
+    width: 200px;
+    height: 200px;
+    background: radial-gradient(circle, rgba(255,255,255,0.15) 0%, transparent 70%);
+    border-radius: 50%;
+  }
+}
+
+.user-avatar-large {
+  width: 70px;
+  height: 70px;
+  border-radius: 50%;
+  background: linear-gradient(135deg, #F97316 0%, #FBBF24 100%);
+  border: 4px solid rgba(255, 255, 255, 0.9);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-weight: 700;
+  font-size: 26px;
+  flex-shrink: 0;
+  box-shadow: 0 8px 20px rgba(0, 0, 0, 0.25);
+  position: relative;
+  z-index: 1;
+}
+
+.user-details {
+  flex: 1;
+  min-width: 0;
+  position: relative;
+  z-index: 1;
+}
+
+.user-name-large {
+  font-size: 20px;
+  font-weight: 700;
+  margin-bottom: 6px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  letter-spacing: 0.3px;
+  text-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+}
+
+.user-email {
+  font-size: 14px;
+  opacity: 0.95;
+  margin-bottom: 10px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  font-weight: 400;
+  letter-spacing: 0.2px;
+}
+
+.user-role {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 13px;
+  font-weight: 600;
+  background: rgba(255, 255, 255, 0.25);
+  backdrop-filter: blur(10px);
+  padding: 6px 14px;
+  border-radius: 20px;
+  width: fit-content;
+  border: 1px solid rgba(255, 255, 255, 0.3);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+  transition: all 0.3s ease;
+
+  mat-icon {
+    font-size: 18px;
+    width: 18px;
+    height: 18px;
+  }
+  
+  &:hover {
+    background: rgba(255, 255, 255, 0.35);
+    transform: translateY(-2px);
+  }
+}
+
+::ng-deep .user-menu {
+  .mat-mdc-menu-item {
+    padding: 14px 24px !important;
+    min-height: 52px !important;
+    transition: all 0.3s ease;
+    position: relative;
+    font-size: 15px;
+    font-weight: 500;
+    
+    &::before {
+      content: '';
+      position: absolute;
+      left: 0;
+      top: 0;
+      bottom: 0;
+      width: 4px;
+      background: linear-gradient(135deg, #0EA5E9 0%, #3B82F6 100%);
+      transform: scaleY(0);
+      transition: transform 0.3s ease;
+    }
+
+    mat-icon {
+      margin-right: 16px;
+      opacity: 0.7;
+      transition: all 0.3s ease;
+      color: #64748B;
+    }
+
+    &:hover {
+      background-color: rgba(14, 165, 233, 0.08) !important;
+      padding-left: 28px !important;
+      
+      &::before {
+        transform: scaleY(1);
+      }
+      
+      mat-icon {
+        opacity: 1;
+        color: #0EA5E9;
+        transform: scale(1.1);
+      }
+    }
+  }
+
+  .logout-button {
+    color: #EF4444;
+    background-color: rgba(239, 68, 68, 0.05) !important;
+    margin: 8px;
+    border-radius: 8px;
+
+    mat-icon {
+      color: #EF4444;
+    }
+    
+    &:hover {
+      background-color: rgba(239, 68, 68, 0.12) !important;
+      
+      &::before {
+        background: linear-gradient(135deg, #EF4444 0%, #F87171 100%);
+      }
+    }
+  }
+  
+  // Divider stylisé
+  .mat-divider {
+    border-top-color: rgba(0, 0, 0, 0.08) !important;
+    margin: 8px 0 !important;
+  }
+}
+
+// Animations d'entrée/sortie du menu
+@keyframes slideInDown {
+  from {
+    opacity: 0;
+    transform: translateY(-10px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+::ng-deep .user-menu {
+  animation: slideInDown 0.3s ease-out;
+}
+
+// Responsive
+@media (max-width: 768px) {
+  .header-container {
+    padding: 0 8px;
+  }
+
+  .logo-section {
+    .app-title {
+      font-size: 18px;
+    }
+  }
+
+  .nav-section {
+    button span {
+      display: none;
+    }
+  }
+}
+
+.language-section {
+  display: flex;
+  align-items: center;
+  margin-right: 12px;
+
+  ::ng-deep {
+    .language-btn {
+      color: white;
+      transition: all 0.3s ease;
+
+      &:hover {
+        background-color: rgba(255, 255, 255, 0.15);
+        transform: scale(1.1);
+      }
+    }
+  }
+}
+
+// ── À AJOUTER dans header.component.scss ─────────────────────
+// Bouton "Mes réclamations" dans la navbar frontoffice
+
+.nav-complaints-btn {
+  position: relative;
+
+  // Badge rouge nombre de réclamations actives
+  .complaints-badge {
+    position: absolute;
+    top: 4px;
+    right: 2px;
+    min-width: 16px;
+    height: 16px;
+    padding: 0 4px;
+    background: #ef4444;
+    color: white;
+    border-radius: 100px;
+    font-size: 10px;
+    font-weight: 700;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    line-height: 1;
+    pointer-events: none;
+    animation: badgePop 0.2s ease;
+  }
+}
+
+// Etat actif routerLinkActive
+.nav-active {
+  background: rgba(255, 255, 255, 0.15) !important;
+  border-radius: 4px;
+}
+
+// Badge dans le menu user dropdown
+.complaints-menu-item {
+  span {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+  }
+
+  .menu-badge {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    min-width: 18px;
+    height: 18px;
+    padding: 0 5px;
+    background: #ef4444;
+    color: white;
+    border-radius: 100px;
+    font-size: 11px;
+    font-weight: 700;
+    line-height: 1;
+  }
+}
+
+@keyframes badgePop {
+  from { transform: scale(0); }
+  to   { transform: scale(1); }
+}

@@ -1,0 +1,101 @@
+<div class="my-orgs-page">
+  <div class="page-header">
+    <h2>Mes organisations</h2>
+    <button mat-raised-button color="primary" (click)="create()">
+      <mat-icon>add</mat-icon> Créer une organisation
+    </button>
+  </div>
+
+  @if (isLoading()) {
+    <div class="loading-center"><mat-spinner diameter="40"></mat-spinner></div>
+  }
+
+  @if (error()) {
+    <p class="error-msg"><mat-icon>error</mat-icon> {{ error() }}</p>
+  }
+
+  @if (!isLoading() && orgs().length === 0 && !error()) {
+    <div class="empty-state">
+      <mat-icon>domain_disabled</mat-icon>
+      <p>Vous n'appartenez à aucune organisation.</p>
+      <button mat-raised-button color="primary" (click)="create()">Créer ma première organisation</button>
+    </div>
+  }
+
+  <div class="org-grid">
+    @for (org of orgs(); track org.id) {
+      <mat-card class="org-card">
+        <div class="org-logo-wrap">
+          @if (org.logoUrl) {
+            <img [src]="org.logoUrl" [alt]="org.name" class="org-logo">
+          } @else {
+            <div class="org-logo-placeholder"><mat-icon>domain</mat-icon></div>
+          }
+        </div>
+        <mat-card-content>
+          <div class="card-top">
+            <h3>{{ org.name }}</h3>
+            <span class="status-badge status-{{ statusClass(org.status) }}">{{ statusLabel(org.status) }}</span>
+          </div>
+
+          <div class="badges">
+            <span class="badge badge-type">{{ org.type }}</span>
+            <span class="badge badge-size">{{ org.size }}</span>
+          </div>
+
+          @if (org.location) {
+            <p class="location"><mat-icon>place</mat-icon>{{ org.location }}</p>
+          }
+
+          <div class="meta">
+            <span><mat-icon>people</mat-icon>{{ org.memberCount }}</span>
+            <span><mat-icon>star</mat-icon>{{ org.averageRating | number:'1.1-1' }}</span>
+            <span><mat-icon>check_circle</mat-icon>{{ org.completedProjectsCount }}</span>
+          </div>
+        </mat-card-content>
+
+        <mat-card-actions>
+          <button mat-button (click)="view(org.id)">
+            <mat-icon>visibility</mat-icon> Voir
+          </button>
+          <button mat-button color="primary" (click)="settings(org.id)">
+            <mat-icon>settings</mat-icon> Gérer
+          </button>
+        </mat-card-actions>
+      </mat-card>
+    }
+  </div>
+</div>
+
+<style>
+.my-orgs-page { max-width: 1100px; margin: 0 auto; padding: 24px; }
+.page-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 32px; }
+.page-header h2 { margin: 0; font-size: 1.75rem; }
+.loading-center { display: flex; justify-content: center; padding: 64px; }
+.error-msg { display: flex; align-items: center; gap: 8px; color: #c62828; background: #ffebee; padding: 12px 16px; border-radius: 8px; }
+.empty-state { text-align: center; padding: 64px; color: #888; }
+.empty-state mat-icon { font-size: 64px; height: 64px; width: 64px; display: block; margin: 0 auto 16px; }
+.org-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(280px, 1fr)); gap: 24px; }
+.org-card { display: flex; flex-direction: column; }
+.org-logo-wrap { text-align: center; padding: 20px 20px 0; }
+.org-logo { width: 80px; height: 80px; border-radius: 50%; object-fit: cover; }
+.org-logo-placeholder { width: 80px; height: 80px; border-radius: 50%; background: #eeeeee; display: inline-flex; align-items: center; justify-content: center; }
+.org-logo-placeholder mat-icon { font-size: 48px; height: 48px; width: 48px; color: #bdbdbd; }
+.card-top { display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 8px; }
+.card-top h3 { margin: 0; font-size: 1.05rem; }
+.status-badge { padding: 2px 10px; border-radius: 12px; font-size: 0.75rem; font-weight: 600; white-space: nowrap; }
+.status-active    { background: #e8f5e9; color: #2e7d32; }
+.status-pending   { background: #fff8e1; color: #f57f17; }
+.status-suspended { background: #fff3e0; color: #e65100; }
+.status-dissolved { background: #f5f5f5; color: #757575; }
+.status-rejected  { background: #ffebee; color: #c62828; }
+.badges { display: flex; gap: 6px; flex-wrap: wrap; margin-bottom: 8px; }
+.badge { padding: 2px 8px; border-radius: 10px; font-size: 0.75rem; }
+.badge-type { background: #e3f2fd; color: #1565c0; }
+.badge-size { background: #f3e5f5; color: #6a1b9a; }
+.location { display: flex; align-items: center; gap: 4px; font-size: 0.85rem; color: #666; margin: 4px 0; }
+.location mat-icon { font-size: 16px; height: 16px; width: 16px; }
+.meta { display: flex; gap: 16px; font-size: 0.8rem; color: #555; margin-top: 8px; }
+.meta span { display: flex; align-items: center; gap: 4px; }
+.meta mat-icon { font-size: 14px; height: 14px; width: 14px; }
+</style>

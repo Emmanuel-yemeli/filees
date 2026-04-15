@@ -1,0 +1,116 @@
+<div class="page-container">
+  <div class="page-header">
+    <div>
+      <h2><mat-icon>auto_awesome</mat-icon> Matching automatique</h2>
+      <p>Trouvez les organisations qui correspondent à vos besoins.</p>
+    </div>
+  </div>
+
+  <div class="layout">
+    <!-- Filters panel -->
+    <div class="filters-panel">
+      <h3>Critères de recherche</h3>
+
+      <div class="tag-input-row">
+        <mat-form-field appearance="outline" style="width:100%">
+          <mat-label>Compétence requise</mat-label>
+          <input matInput [(ngModel)]="tagInput" (keydown.enter)="addTag(); $event.preventDefault()"
+                 placeholder="React, Design, Marketing...">
+        </mat-form-field>
+        <button mat-icon-button color="primary" (click)="addTag()">
+          <mat-icon>add</mat-icon>
+        </button>
+      </div>
+
+      @if (form.requiredSpecialties!.length > 0) {
+        <div class="tags-row">
+          @for (t of form.requiredSpecialties!; track t) {
+            <span class="tag">{{ t }}
+              <button (click)="removeTag(t)">✕</button>
+            </span>
+          }
+        </div>
+      }
+
+      <mat-form-field appearance="outline" style="width:100%; margin-top:8px">
+        <mat-label>Type d'organisation</mat-label>
+        <mat-select [(ngModel)]="form.preferredType">
+          <mat-option [value]="undefined">Tous</mat-option>
+          @for (t of orgTypes; track t) {
+            <mat-option [value]="t">{{ t }}</mat-option>
+          }
+        </mat-select>
+      </mat-form-field>
+
+      <mat-form-field appearance="outline" style="width:100%">
+        <mat-label>Note minimum (1-5)</mat-label>
+        <input matInput type="number" min="1" max="5" [(ngModel)]="form.minRating">
+      </mat-form-field>
+
+      <mat-form-field appearance="outline" style="width:100%">
+        <mat-label>Projets minimum réalisés</mat-label>
+        <input matInput type="number" min="0" [(ngModel)]="form.minProjects">
+      </mat-form-field>
+
+      <button mat-raised-button color="primary" style="width:100%" [disabled]="isLoading()" (click)="search()">
+        <mat-icon>auto_awesome</mat-icon> {{ isLoading() ? 'Recherche...' : 'Trouver des organisations' }}
+      </button>
+    </div>
+
+    <!-- Results -->
+    <div class="results-panel">
+      @if (!searched() && !isLoading()) {
+        <div class="hint">
+          <mat-icon>tips_and_updates</mat-icon>
+          <p>Définissez vos critères et lancez le matching.</p>
+        </div>
+      }
+
+      @if (searched() && results().length === 0) {
+        <div class="empty">
+          <mat-icon>search_off</mat-icon>
+          <p>Aucune organisation ne correspond à ces critères.</p>
+        </div>
+      }
+
+      @if (results().length > 0) {
+        <p class="results-count">{{ results().length }} organisation(s) trouvée(s)</p>
+        <div class="results-grid">
+          @for (org of results(); track org.id) {
+            <div class="org-card" (click)="viewOrg(org.id)">
+              <div class="org-avatar">
+                @if (org.logoUrl) {
+                  <img [src]="org.logoUrl" [alt]="org.name">
+                } @else {
+                  <mat-icon>business</mat-icon>
+                }
+              </div>
+              <div class="org-info">
+                <h4>{{ org.name }}</h4>
+                <div class="org-meta">
+                  <span>{{ org.type }}</span>
+                  @if (org.location) { <span>• {{ org.location }}</span> }
+                </div>
+                <div class="org-stats">
+                  <span class="stars">{{ stars(org.averageRating) }}</span>
+                  <span>{{ org.reviewCount }} avis</span>
+                  <span>{{ org.completedProjectsCount }} projets</span>
+                </div>
+                @if (org.specialties.length > 0) {
+                  <div class="specialties">
+                    @for (s of org.specialties.slice(0,3); track s) {
+                      <span class="spec">{{ s }}</span>
+                    }
+                    @if (org.specialties.length > 3) {
+                      <span class="spec-more">+{{ org.specialties.length - 3 }}</span>
+                    }
+                  </div>
+                }
+              </div>
+            </div>
+          }
+        </div>
+      }
+    </div>
+  </div>
+</div>

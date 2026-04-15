@@ -1,0 +1,122 @@
+<div class="create-org-page">
+  <mat-card class="create-form-card">
+    <mat-card-header>
+      <mat-card-title>
+        <mat-icon>domain_add</mat-icon> Créer une organisation
+      </mat-card-title>
+      <mat-card-subtitle>Remplissez les informations de votre organisation. Elle sera soumise à vérification.</mat-card-subtitle>
+    </mat-card-header>
+
+    <mat-card-content>
+
+      @if (success()) {
+        <div class="success-banner">
+          <mat-icon>check_circle</mat-icon>
+          Organisation créée ! Vous allez être redirigé vers les paramètres...
+        </div>
+      }
+
+      @if (error()) {
+        <div class="error-banner"><mat-icon>error</mat-icon> {{ error() }}</div>
+      }
+
+      <form (ngSubmit)="submit()" #f="ngForm">
+
+        <!-- Name + Type -->
+        <div class="form-row">
+          <mat-form-field appearance="outline" class="flex-2">
+            <mat-label>Nom de l'organisation *</mat-label>
+            <input matInput [(ngModel)]="form.name" name="name" required maxlength="150">
+          </mat-form-field>
+
+          <mat-form-field appearance="outline" class="flex-1">
+            <mat-label>Type *</mat-label>
+            <mat-select [(ngModel)]="form.type" name="type" required>
+              @for (t of types; track t) { <mat-option [value]="t">{{ t }}</mat-option> }
+            </mat-select>
+          </mat-form-field>
+
+          <mat-form-field appearance="outline" class="flex-1">
+            <mat-label>Taille</mat-label>
+            <mat-select [(ngModel)]="form.size" name="size">
+              @for (s of sizes; track s) { <mat-option [value]="s">{{ s }}</mat-option> }
+            </mat-select>
+          </mat-form-field>
+        </div>
+
+        <!-- Description -->
+        <mat-form-field appearance="outline" style="width:100%">
+          <mat-label>Description</mat-label>
+          <textarea matInput rows="4" [(ngModel)]="form.description" name="description" maxlength="2000" placeholder="Décrivez votre organisation, ses valeurs, son domaine d'expertise..."></textarea>
+        </mat-form-field>
+
+        <!-- Location + Website -->
+        <div class="form-row">
+          <mat-form-field appearance="outline" class="flex-1">
+            <mat-label>Localisation</mat-label>
+            <mat-icon matPrefix>place</mat-icon>
+            <input matInput [(ngModel)]="form.location" name="location" placeholder="Paris, France">
+          </mat-form-field>
+
+          <mat-form-field appearance="outline" class="flex-1">
+            <mat-label>Site web</mat-label>
+            <mat-icon matPrefix>language</mat-icon>
+            <input matInput [(ngModel)]="form.website" name="website" placeholder="https://...">
+          </mat-form-field>
+        </div>
+
+        <!-- Logo + SIRET -->
+        <div class="form-row">
+          <mat-form-field appearance="outline" class="flex-1">
+            <mat-label>URL du logo</mat-label>
+            <mat-icon matPrefix>image</mat-icon>
+            <input matInput [(ngModel)]="form.logoUrl" name="logoUrl">
+          </mat-form-field>
+
+          <mat-form-field appearance="outline" class="flex-1">
+            <mat-label>SIRET (optionnel)</mat-label>
+            <input matInput [(ngModel)]="form.siret" name="siret" maxlength="14" placeholder="14 chiffres">
+          </mat-form-field>
+        </div>
+
+        <!-- Specialties -->
+        <mat-form-field appearance="outline" style="width:100%">
+          <mat-label>Spécialités</mat-label>
+          <mat-chip-grid #chipGrid>
+            @for (s of form.specialties; track s) {
+              <mat-chip-row (removed)="removeSpecialty(s)">
+                {{ s }} <button matChipRemove><mat-icon>cancel</mat-icon></button>
+              </mat-chip-row>
+            }
+          </mat-chip-grid>
+          <input placeholder="Ex: React, UI/UX, DevOps..."
+                 [matChipInputFor]="chipGrid"
+                 [matChipInputSeparatorKeyCodes]="separators"
+                 (matChipInputTokenEnd)="addSpecialty($event)">
+          <mat-hint>Appuyez sur Entrée ou virgule pour ajouter</mat-hint>
+        </mat-form-field>
+
+      </form>
+    </mat-card-content>
+
+    <mat-card-actions align="end">
+      <button mat-button (click)="cancel()">Annuler</button>
+      <button mat-raised-button color="primary" [disabled]="isSubmitting() || success()" (click)="submit()">
+        @if (isSubmitting()) { <mat-spinner diameter="20"></mat-spinner> }
+        @else { <mat-icon>send</mat-icon> Soumettre }
+      </button>
+    </mat-card-actions>
+  </mat-card>
+</div>
+
+<style>
+.create-org-page { max-width: 800px; margin: 32px auto; padding: 0 16px; }
+.create-form-card mat-card-header { margin-bottom: 24px; }
+.create-form-card mat-card-title { display: flex; align-items: center; gap: 8px; font-size: 1.4rem; }
+.form-row { display: flex; gap: 16px; flex-wrap: wrap; }
+.flex-1 { flex: 1; min-width: 180px; }
+.flex-2 { flex: 2; min-width: 200px; }
+.success-banner { display: flex; align-items: center; gap: 8px; background: #e8f5e9; color: #2e7d32; padding: 12px 16px; border-radius: 8px; margin-bottom: 16px; }
+.error-banner   { display: flex; align-items: center; gap: 8px; background: #ffebee; color: #c62828; padding: 12px 16px; border-radius: 8px; margin-bottom: 16px; }
+mat-card-actions { padding: 16px; }
+</style>

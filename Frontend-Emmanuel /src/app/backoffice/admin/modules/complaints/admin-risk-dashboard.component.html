@@ -1,0 +1,241 @@
+<div class="risk-page">
+  <h2>Tableau de bord — Risques &amp; Sanctions</h2>
+
+  <mat-tab-group>
+
+    <!-- ═══ TAB 1 : Utilisateurs à risque élevé ═══ -->
+    <mat-tab label="Utilisateurs à risque">
+      <div class="tab-content">
+        @if (isLoading()) {
+          <div class="loading-center"><mat-spinner diameter="40"></mat-spinner></div>
+        }
+
+        @if (!isLoading() && highRisk().length === 0) {
+          <div class="empty-state">
+            <mat-icon>verified_user</mat-icon>
+            <p>Aucun utilisateur à risque élevé détecté.</p>
+          </div>
+        }
+
+        @if (!isLoading() && highRisk().length > 0) {
+          <table mat-table [dataSource]="highRisk()" class="risk-table">
+
+            <ng-container matColumnDef="userId">
+              <th mat-header-cell *matHeaderCellDef>Utilisateur</th>
+              <td mat-cell *matCellDef="let r" class="mono">{{ r.userId }}</td>
+            </ng-container>
+
+            <ng-container matColumnDef="riskScore">
+              <th mat-header-cell *matHeaderCellDef>Score</th>
+              <td mat-cell *matCellDef="let r">
+                <div class="score-bar">
+                  <div class="score-fill" [style.width.%]="r.riskScore" [style.background]="riskColor(r.riskLevel)"></div>
+                </div>
+                <span class="score-num">{{ r.riskScore }}/100</span>
+              </td>
+            </ng-container>
+
+            <ng-container matColumnDef="riskLevel">
+              <th mat-header-cell *matHeaderCellDef>Niveau</th>
+              <td mat-cell *matCellDef="let r">
+                <span class="risk-badge" [style.background]="riskColor(r.riskLevel)">{{ r.riskLevel }}</span>
+              </td>
+            </ng-container>
+
+            <ng-container matColumnDef="resolvedAgainst">
+              <th mat-header-cell *matHeaderCellDef>Résolutions défavorables</th>
+              <td mat-cell *matCellDef="let r" style="text-align:center">{{ r.resolvedAgainst }}</td>
+            </ng-container>
+
+            <ng-container matColumnDef="scamCount">
+              <th mat-header-cell *matHeaderCellDef>SCAM / Harcèlement</th>
+              <td mat-cell *matCellDef="let r">
+                <span class="scam-count">{{ r.scamCount }}</span> / {{ r.harassmentCount }}
+              </td>
+            </ng-container>
+
+            <ng-container matColumnDef="actions">
+              <th mat-header-cell *matHeaderCellDef>Actions</th>
+              <td mat-cell *matCellDef="let r">
+                <button mat-icon-button color="primary" (click)="selectUser(r)" title="Gérer">
+                  <mat-icon>manage_accounts</mat-icon>
+                </button>
+                <button mat-icon-button (click)="recompute(r.userId)" title="Recalculer">
+                  <mat-icon>refresh</mat-icon>
+                </button>
+              </td>
+            </ng-container>
+
+            <tr mat-header-row *matHeaderRowDef="riskCols"></tr>
+            <tr mat-row *matRowDef="let row; columns: riskCols"
+                [class.selected-row]="lookedUp()?.userId === row.userId"></tr>
+          </table>
+        }
+      </div>
+    </mat-tab>
+
+    <!-- ═══ TAB 2 : Recherche + sanctions ═══ -->
+    <mat-tab label="Gérer un utilisateur">
+      <div class="tab-content">
+
+        <!-- Lookup -->
+        <div class="lookup-bar">
+          <mat-form-field appearance="outline" style="flex:1">
+            <mat-label>ID utilisateur</mat-label>
+            <mat-icon matPrefix>search</mat-icon>
+            <input matInput [ngModel]="lookupId()" (ngModelChange)="lookupId.set($event)"
+                   (keyup.enter)="lookup()" placeholder="UUID de l'utilisateur...">
+          </mat-form-field>
+          <button mat-raised-button color="primary" [disabled]="lookupLoading()" (click)="lookup()">
+            @if (lookupLoading()) { <mat-spinner diameter="20"></mat-spinner> }
+            @else { <mat-icon>person_search</mat-icon> Rechercher }
+          </button>
+        </div>
+
+        <!-- Profile card -->
+        @if (lookedUp()) {
+          <mat-card class="profile-card">
+            <mat-card-content>
+              <div class="profile-header">
+                <div class="profile-score" [style.border-color]="riskColor(lookedUp()!.riskLevel)">
+                  <span class="big-score">{{ lookedUp()!.riskScore }}</span>
+                  <span class="score-max">/100</span>
+                </div>
+                <div class="profile-details">
+                  <span class="risk-badge lg" [style.background]="riskColor(lookedUp()!.riskLevel)">
+                    {{ lookedUp()!.riskLevel }}
+                  </span>
+                  <div class="profile-stats">
+                    <span>Réclamations reçues : <strong>{{ lookedUp()!.totalComplaintsReceived }}</strong></span>
+                    <span>Résolues contre lui : <strong>{{ lookedUp()!.resolvedAgainst }}</strong></span>
+                    <span>SCAM : <strong class="red">{{ lookedUp()!.scamCount }}</strong></span>
+                    <span>Harcèlement : <strong class="red">{{ lookedUp()!.harassmentCount }}</strong></span>
+                  </div>
+                </div>
+                <button mat-icon-button (click)="recompute(lookedUp()!.userId)" title="Recalculer le score">
+                  <mat-icon>refresh</mat-icon>
+                </button>
+              </div>
+            </mat-card-content>
+          </mat-card>
+
+          <mat-divider style="margin: 20px 0"></mat-divider>
+
+          <!-- Apply sanction -->
+          <h3>Appliquer une sanction manuelle</h3>
+          @if (applySuccess()) {
+            <div class="success-banner"><mat-icon>check_circle</mat-icon> Sanction appliquée.</div>
+          }
+          @if (applyError()) {
+            <div class="error-banner"><mat-icon>error</mat-icon> {{ applyError() }}</div>
+          }
+          <div class="sanction-form">
+            <mat-form-field appearance="outline">
+              <mat-label>Type de sanction</mat-label>
+              <mat-select [ngModel]="sanctionType()" (ngModelChange)="sanctionType.set($event)">
+                @for (t of sanctionTypes; track t) {
+                  <mat-option [value]="t">
+                    <span [style.color]="sanctionColor(t)">●</span> {{ t }}
+                  </mat-option>
+                }
+              </mat-select>
+            </mat-form-field>
+            <mat-form-field appearance="outline" style="flex:2">
+              <mat-label>Motif *</mat-label>
+              <input matInput [ngModel]="sanctionReason()" (ngModelChange)="sanctionReason.set($event)">
+            </mat-form-field>
+            <button mat-raised-button color="warn" [disabled]="applying()" (click)="applyManualSanction()">
+              @if (applying()) { <mat-spinner diameter="20"></mat-spinner> }
+              @else { <mat-icon>block</mat-icon> Sanctionner }
+            </button>
+          </div>
+
+          <!-- Sanctions history -->
+          <h3>Historique des sanctions</h3>
+          @if (sanctions().length === 0) {
+            <p class="empty-msg">Aucune sanction pour cet utilisateur.</p>
+          }
+          @if (sanctions().length > 0) {
+            <table mat-table [dataSource]="sanctions()" class="sanction-table">
+              <ng-container matColumnDef="type">
+                <th mat-header-cell *matHeaderCellDef>Type</th>
+                <td mat-cell *matCellDef="let s">
+                  <span class="sanction-badge" [style.background]="sanctionColor(s.type)">{{ s.type }}</span>
+                </td>
+              </ng-container>
+              <ng-container matColumnDef="reason">
+                <th mat-header-cell *matHeaderCellDef>Motif</th>
+                <td mat-cell *matCellDef="let s">{{ s.reason }}</td>
+              </ng-container>
+              <ng-container matColumnDef="appliedAt">
+                <th mat-header-cell *matHeaderCellDef>Appliquée le</th>
+                <td mat-cell *matCellDef="let s">{{ s.appliedAt | date:'dd/MM/yyyy' }}</td>
+              </ng-container>
+              <ng-container matColumnDef="expiresAt">
+                <th mat-header-cell *matHeaderCellDef>Expire le</th>
+                <td mat-cell *matCellDef="let s">{{ s.expiresAt ? (s.expiresAt | date:'dd/MM/yyyy') : '—' }}</td>
+              </ng-container>
+              <ng-container matColumnDef="active">
+                <th mat-header-cell *matHeaderCellDef>Active</th>
+                <td mat-cell *matCellDef="let s">
+                  @if (s.active) { <span class="active-badge">Oui</span> }
+                  @else { <span class="lifted-badge">Levée</span> }
+                </td>
+              </ng-container>
+              <ng-container matColumnDef="actions">
+                <th mat-header-cell *matHeaderCellDef></th>
+                <td mat-cell *matCellDef="let s">
+                  @if (s.active) {
+                    <button mat-icon-button color="primary" (click)="lift(s.id)" title="Lever la sanction">
+                      <mat-icon>lock_open</mat-icon>
+                    </button>
+                  }
+                </td>
+              </ng-container>
+              <tr mat-header-row *matHeaderRowDef="sanctionCols"></tr>
+              <tr mat-row *matRowDef="let row; columns: sanctionCols"></tr>
+            </table>
+          }
+        }
+      </div>
+    </mat-tab>
+
+  </mat-tab-group>
+</div>
+
+<style>
+.risk-page { max-width: 1100px; margin: 0 auto; padding: 24px; }
+.risk-page h2 { margin-bottom: 24px; }
+.tab-content { padding: 24px 0; }
+.loading-center { display: flex; justify-content: center; padding: 48px; }
+.empty-state { text-align: center; padding: 48px; color: #888; }
+.empty-state mat-icon { font-size: 56px; height: 56px; width: 56px; display: block; margin: 0 auto 12px; }
+.risk-table, .sanction-table { width: 100%; }
+.mono { font-family: monospace; font-size: 0.82rem; }
+.score-bar { display: inline-block; width: 80px; height: 8px; background: #e0e0e0; border-radius: 4px; vertical-align: middle; overflow: hidden; }
+.score-fill { height: 100%; border-radius: 4px; }
+.score-num { font-size: 0.78rem; color: #555; margin-left: 6px; }
+.risk-badge { display: inline-block; padding: 3px 10px; border-radius: 12px; color: white; font-size: 0.78rem; font-weight: 700; }
+.risk-badge.lg { font-size: 0.9rem; padding: 5px 14px; }
+.scam-count { color: #c62828; font-weight: 700; }
+.selected-row { background: #e3f2fd !important; }
+.lookup-bar { display: flex; gap: 12px; align-items: center; margin-bottom: 16px; }
+.profile-card { margin-bottom: 16px; }
+.profile-header { display: flex; align-items: center; gap: 24px; }
+.profile-score { width: 80px; height: 80px; border-radius: 50%; border: 4px solid; display: flex; flex-direction: column; align-items: center; justify-content: center; }
+.big-score { font-size: 1.8rem; font-weight: 700; line-height: 1; }
+.score-max { font-size: 0.75rem; color: #888; }
+.profile-details { flex: 1; display: flex; flex-direction: column; gap: 8px; }
+.profile-stats { display: flex; gap: 20px; flex-wrap: wrap; font-size: 0.85rem; color: #555; }
+.profile-stats strong { color: #333; }
+.red { color: #c62828 !important; }
+.sanction-form { display: flex; gap: 12px; align-items: center; flex-wrap: wrap; margin-bottom: 16px; }
+.sanction-form mat-form-field { flex: 1; min-width: 180px; }
+.sanction-badge { display: inline-block; padding: 2px 8px; border-radius: 10px; color: white; font-size: 0.72rem; font-weight: 700; }
+.active-badge { color: #c62828; font-weight: 700; font-size: 0.82rem; }
+.lifted-badge { color: #888; font-size: 0.82rem; }
+.success-banner { display: flex; align-items: center; gap: 8px; background: #e8f5e9; color: #2e7d32; padding: 10px 14px; border-radius: 8px; margin-bottom: 12px; }
+.error-banner   { display: flex; align-items: center; gap: 8px; background: #ffebee; color: #c62828; padding: 10px 14px; border-radius: 8px; margin-bottom: 12px; }
+.empty-msg { color: #888; padding: 12px 0; }
+h3 { color: #444; margin: 16px 0 12px; }
+</style>

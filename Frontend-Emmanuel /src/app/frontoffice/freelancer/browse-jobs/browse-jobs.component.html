@@ -1,0 +1,129 @@
+<div class="browse-page">
+
+  <!-- ── Hero / title ────────────────────────────────────────── -->
+  <header class="bp-hero">
+    <div class="bp-hero__content">
+      <h1>Explorez les missions</h1>
+      <p>Trouvez le projet parfait — filtrez, triez et postulez en un clic.</p>
+    </div>
+  </header>
+
+  <!-- ── Sticky filter bar ───────────────────────────────────── -->
+  <div class="bp-filters">
+    <app-filter-bar
+      [config]="filterConfig"
+      [filters]="filters"
+      [resultCount]="totalElements"
+      resultLabel="missions"
+      (filtersChange)="onFiltersChange($event)"
+      (searchChange)="onSearchChange($event)">
+    </app-filter-bar>
+
+    <!-- Live suggestions overlay (positioned under the filter bar's search) -->
+    <div class="bp-suggest" *ngIf="showSuggestions && searchSuggestions.length > 0">
+      <div
+        *ngFor="let s of searchSuggestions"
+        class="bp-suggest__item"
+        (click)="selectSuggestion(s)">
+        <mat-icon class="bp-suggest__icon">work_outline</mat-icon>
+        <div class="bp-suggest__text">
+          <span class="bp-suggest__title">{{ s.title }}</span>
+          <span class="bp-suggest__meta">{{ s.category }} · {{ s.budget }} DT</span>
+        </div>
+        <mat-icon class="bp-suggest__arrow">arrow_forward</mat-icon>
+      </div>
+    </div>
+  </div>
+
+  <!-- ── Recommended (carousel style) ────────────────────────── -->
+  <section class="bp-reco" *ngIf="recommendedJobs.length > 0">
+    <div class="bp-reco__header">
+      <h2><mat-icon>auto_awesome</mat-icon> Recommandées pour vous</h2>
+    </div>
+    <div class="bp-reco__grid">
+      <article
+        *ngFor="let job of recommendedJobs"
+        class="bp-reco__card"
+        (click)="viewJobDetail(job.id)">
+        <span class="bp-reco__badge">Recommandé</span>
+        <h3>{{ job.title }}</h3>
+        <p class="bp-reco__budget">
+          <strong>{{ job.budget }} DT</strong>
+          <span>({{ job.budgetType === 'FIXED' ? 'Forfait' : 'Horaire' }})</span>
+        </p>
+        <div class="bp-reco__skills">
+          <span *ngFor="let skill of job.requiredSkills.slice(0, 3)" class="bp-chip">{{ skill }}</span>
+        </div>
+      </article>
+    </div>
+  </section>
+
+  <!-- ── Results ────────────────────────────────────────────── -->
+  <section class="bp-results">
+
+    <div *ngIf="isLoading" class="bp-state">
+      <div class="bp-spinner"></div>
+      <p>Chargement des missions…</p>
+    </div>
+
+    <div *ngIf="!isLoading && jobs.length === 0" class="bp-state">
+      <div class="bp-state__icon"><mat-icon>search_off</mat-icon></div>
+      <h2>Aucune mission ne correspond</h2>
+      <p>Ajustez vos filtres ou essayez d'autres mots-clés.</p>
+    </div>
+
+    <div *ngIf="!isLoading && jobs.length > 0" class="bp-grid">
+      <article
+        *ngFor="let job of jobs"
+        class="bp-card"
+        (click)="viewJobDetail(job.id)">
+
+        <header class="bp-card__head">
+          <span class="bp-card__cat">
+            <mat-icon>{{ getCategoryIcon(job.category) }}</mat-icon>
+            {{ job.category | titlecase }}
+          </span>
+          <span class="bp-card__date">{{ formatDate(job.publishedAt || job.createdAt) }}</span>
+        </header>
+
+        <app-job-smart-badges [job]="job"></app-job-smart-badges>
+
+        <h3 class="bp-card__title">{{ job.title }}</h3>
+        <p class="bp-card__desc">{{ job.description | slice:0:160 }}…</p>
+
+        <div class="bp-card__budget">
+          <mat-icon>attach_money</mat-icon>
+          <strong>{{ job.budget }} DT</strong>
+          <span>{{ job.budgetType === 'FIXED' ? 'Forfait' : '/ h' }}</span>
+        </div>
+
+        <ul class="bp-card__meta">
+          <li><mat-icon>schedule</mat-icon>{{ job.estimatedDuration }} j</li>
+          <li><mat-icon>location_on</mat-icon>{{ job.location || '—' }}</li>
+          <li *ngIf="job.isRemote" class="bp-card__remote"><mat-icon>home_work</mat-icon>Télétravail</li>
+          <li><mat-icon>trending_up</mat-icon>{{ (job.experienceLevel || '') | titlecase }}</li>
+        </ul>
+
+        <div class="bp-card__skills">
+          <span *ngFor="let skill of job.requiredSkills.slice(0, 4)" class="bp-chip">{{ skill }}</span>
+          <span *ngIf="job.requiredSkills.length > 4" class="bp-chip bp-chip--more">
+            +{{ job.requiredSkills.length - 4 }}
+          </span>
+        </div>
+
+        <footer class="bp-card__foot">
+          <span class="bp-card__applicants">
+            <mat-icon>group</mat-icon>
+            {{ job.applicantCount }} candidat{{ job.applicantCount > 1 ? 's' : '' }}
+          </span>
+          <button class="bp-card__cta" (click)="viewJobDetail(job.id); $event.stopPropagation()">
+            Voir
+            <mat-icon>arrow_forward</mat-icon>
+          </button>
+        </footer>
+      </article>
+    </div>
+
+  </section>
+
+</div>

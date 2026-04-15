@@ -1,0 +1,161 @@
+<div class="queue-container">
+
+  <!-- Header -->
+  <div class="page-header">
+    <div class="header-left">
+      <h1>File d'attente</h1>
+      <p class="subtitle">Réclamations disponibles et vos dossiers en cours</p>
+    </div>
+    <button class="btn-refresh" (click)="load()" [disabled]="isLoading()">
+      <mat-icon>refresh</mat-icon>
+    </button>
+  </div>
+
+  <!-- Bandeau d'information workflow -->
+  <div class="workflow-info-banner">
+    <mat-icon>info_outline</mat-icon>
+    <span>
+      Les réclamations sont normalement assignées par l'administrateur.
+      Vous pouvez prendre en charge une réclamation non assignée si nécessaire.
+    </span>
+  </div>
+
+  <!-- Jump-to-ticket -->
+  <div class="jump-ticket-bar">
+    <mat-icon class="jump-icon">confirmation_number</mat-icon>
+    <input
+      type="text"
+      class="jump-ticket-input"
+      placeholder="Accéder à un ticket  ex: NX-202506-00123"
+      [(ngModel)]="ticketInput"
+      (keydown.enter)="jumpToTicket()"
+      [disabled]="isSearchingTicket()">
+    <button class="btn-jump" (click)="jumpToTicket()" [disabled]="!ticketInput.trim() || isSearchingTicket()">
+      <mat-icon>{{ isSearchingTicket() ? 'hourglass_empty' : 'arrow_forward' }}</mat-icon>
+    </button>
+  </div>
+
+  <!-- Tabs + compteurs -->
+  <div class="tabs-row">
+    <button
+      class="tab-btn"
+      [class.active]="selectedTab() === 'unassigned'"
+      (click)="selectedTab.set('unassigned')">
+      <mat-icon>inbox</mat-icon>
+      Non assignées
+      <span class="count-badge">{{ unassigned().length }}</span>
+    </button>
+    <button
+      class="tab-btn"
+      [class.active]="selectedTab() === 'mine'"
+      (click)="selectedTab.set('mine')">
+      <mat-icon>assignment_ind</mat-icon>
+      Mes dossiers
+      <span class="count-badge mine">{{ mine().length }}</span>
+    </button>
+    <button
+      class="tab-btn overdue-tab"
+      [class.active]="selectedTab() === 'overdue'"
+      (click)="selectedTab.set('overdue'); loadOverdue()">
+      <mat-icon>schedule</mat-icon>
+      En retard
+      <span class="count-badge overdue" *ngIf="overdueList().length > 0">{{ overdueList().length }}</span>
+    </button>
+  </div>
+
+  <!-- Loading -->
+  <div *ngIf="(selectedTab() !== 'overdue' && isLoading()) || (selectedTab() === 'overdue' && isLoadingOverdue())" class="state-box">
+    <div class="spinner"></div>
+    <p>Chargement...</p>
+  </div>
+
+  <!-- Empty -->
+  <div *ngIf="!isLoading() && !isLoadingOverdue() && displayed().length === 0" class="state-box empty">
+    <mat-icon class="empty-icon">
+      {{ selectedTab() === 'unassigned' ? 'check_circle_outline' : selectedTab() === 'overdue' ? 'timer_off' : 'inbox' }}
+    </mat-icon>
+    <h2>
+      {{ selectedTab() === 'unassigned' ? 'Aucune réclamation en attente' : selectedTab() === 'overdue' ? 'Aucune réclamation en retard' : 'Aucun dossier assigné' }}
+    </h2>
+    <p>
+      {{ selectedTab() === 'unassigned' ? 'Toutes les réclamations sont prises en charge.' : selectedTab() === 'overdue' ? 'Toutes les réclamations ont été traitées dans les délais.' : 'Prenez en charge une réclamation depuis l\'onglet Non assignées.' }}
+    </p>
+  </div>
+
+  <!-- Table -->
+  <div *ngIf="!isLoading() && displayed().length > 0" class="table-card">
+    <table class="complaints-table">
+      <thead>
+        <tr>
+          <th>Ticket</th>
+          <th>Sujet</th>
+          <th>Catégorie</th>
+          <th>Priorité</th>
+          <th>Statut</th>
+          <th>Date</th>
+          <th>Action</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr
+          *ngFor="let c of displayed()"
+          class="table-row"
+          (click)="viewDetail(c.id)">
+
+          <td>
+            <span class="ticket-num">{{ c.ticketNumber }}</span>
+          </td>
+
+          <td>
+            <span class="subject-text">{{ c.subject | slice:0:50 }}{{ c.subject.length > 50 ? '...' : '' }}</span>
+          </td>
+
+          <td>
+            <span class="category-tag">{{ getCategoryLabel(c.category) }}</span>
+          </td>
+
+          <td>
+            <span class="priority-dot" [style.background]="getPriorityColor(c.priority)"></span>
+            <span class="priority-text" [style.color]="getPriorityColor(c.priority)">
+              {{ getPriorityLabel(c.priority) }}
+            </span>
+          </td>
+
+          <td>
+            <span class="status-badge"
+              [style.background]="getStatusColor(c.status) + '20'"
+              [style.color]="getStatusColor(c.status)">
+              {{ getStatusLabel(c.status) }}
+            </span>
+          </td>
+
+          <td>
+            <span class="date-text">{{ formatDate(c.createdAt) }}</span>
+          </td>
+
+          <td (click)="$event.stopPropagation()">
+            <!-- Bouton prise en charge si non assignée -->
+            <button
+              *ngIf="!c.assignedToId"
+              class="btn-take"
+              [disabled]="takingId() === c.id"
+              (click)="take(c, $event)">
+              <mat-icon>{{ takingId() === c.id ? 'hourglass_empty' : 'play_arrow' }}</mat-icon>
+              {{ takingId() === c.id ? '...' : 'Prendre' }}
+            </button>
+
+            <!-- Bouton traiter si déjà assigné à moi -->
+            <button
+              *ngIf="c.assignedToId"
+              class="btn-process"
+              (click)="viewDetail(c.id)">
+              <mat-icon>open_in_new</mat-icon>
+              Traiter
+            </button>
+          </td>
+        </tr>
+      </tbody>
+    </table>
+  </div>
+
+</div>

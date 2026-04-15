@@ -1,0 +1,372 @@
+<div class="page-wrapper">
+
+  <!-- ── Page header ──────────────────────────────────────────── -->
+  <div class="page-header">
+    <button class="btn-back" type="button" (click)="cancel()">
+      <mat-icon>arrow_back</mat-icon>
+      Retour aux réclamations
+    </button>
+    <div class="header-title-row">
+      <div>
+        <h1>Nouvelle réclamation</h1>
+        <p class="subtitle">Décrivez votre problème, notre équipe vous répondra rapidement.</p>
+      </div>
+      <div class="step-indicator">
+        <span class="step active">1</span>
+        <span class="step-line"></span>
+        <span class="step" [class.active]="ctrl('subject').value?.length >= 5">2</span>
+        <span class="step-line"></span>
+        <span class="step" [class.active]="ctrl('description').value?.length >= 20">3</span>
+      </div>
+    </div>
+  </div>
+
+  <!-- ── Layout 2 colonnes ────────────────────────────────────── -->
+  <div class="page-body">
+
+    <!-- ── Colonne principale ──────────────────────────────────── -->
+    <div class="main-col">
+
+      <!-- Bandeau erreur global -->
+      <div class="error-banner" *ngIf="formSubmitted() && form.invalid">
+        <mat-icon>error_outline</mat-icon>
+        <span>Certains champs sont invalides. Veuillez les corriger avant de soumettre.</span>
+      </div>
+
+      <!-- Card 1 : Catégorie + Priorité -->
+      <div class="card section-card" [formGroup]="form">
+        <div class="card-header">
+          <div class="section-num">01</div>
+          <div>
+            <h3>Classification</h3>
+            <p class="card-subtitle">Catégorie et niveau d'urgence de votre problème</p>
+          </div>
+        </div>
+        <div class="card-body">
+
+          <!-- Catégorie -->
+          <div class="field-group">
+            <label class="field-label required">Catégorie</label>
+            <div class="category-grid">
+              <button
+                type="button"
+                *ngFor="let cat of categories"
+                class="cat-tile"
+                [class.selected]="selectedCategory === cat.value"
+                [class.error]="showError('category')"
+                (click)="form.get('category')!.setValue(cat.value); form.get('category')!.markAsTouched()">
+                <mat-icon class="cat-icon">{{ cat.icon }}</mat-icon>
+                <span class="cat-label">{{ cat.label }}</span>
+              </button>
+            </div>
+            <input type="hidden" formControlName="category">
+            <div class="field-error" *ngIf="showError('category')">
+              <mat-icon>error</mat-icon>{{ errorMsg('category') }}
+            </div>
+          </div>
+
+          <!-- Priorité -->
+          <div class="field-group">
+            <label class="field-label required">Priorité</label>
+            <div class="priority-row">
+              <button
+                type="button"
+                *ngFor="let p of priorities"
+                class="priority-btn"
+                [class.selected]="selectedPriority === p.value"
+                [attr.data-priority]="p.value"
+                (click)="form.get('priority')!.setValue(p.value)">
+                <span class="p-dot" [attr.data-priority]="p.value"></span>
+                {{ p.label }}
+              </button>
+            </div>
+          </div>
+
+        </div>
+      </div>
+
+      <!-- Card 2 : Sujet + Description -->
+      <div class="card section-card" [formGroup]="form">
+        <div class="card-header">
+          <div class="section-num">02</div>
+          <div>
+            <h3>Détail du problème</h3>
+            <p class="card-subtitle">Soyez précis pour accélérer la résolution</p>
+          </div>
+        </div>
+        <div class="card-body">
+
+          <!-- Sujet -->
+          <div class="field-group">
+            <label class="field-label required" for="subject">Sujet</label>
+            <div class="input-wrap" [class.has-error]="showError('subject')">
+              <input
+                id="subject"
+                type="text"
+                class="form-input"
+                placeholder="Ex : Paiement non reçu pour le projet n°..."
+                formControlName="subject"
+                maxlength="255">
+            </div>
+            <div class="field-footer">
+              <div class="field-error inline" *ngIf="showError('subject')">
+                <mat-icon>error</mat-icon>{{ errorMsg('subject') }}
+              </div>
+              <span class="char-count" [class.near]="subjectLength > 230" [class.max]="subjectLength >= 255">
+                {{ subjectLength }}/255
+              </span>
+            </div>
+          </div>
+
+          <!-- Description -->
+          <div class="field-group">
+            <label class="field-label required" for="description">Description détaillée</label>
+            <div class="input-wrap" [class.has-error]="showError('description')">
+              <textarea
+                id="description"
+                class="form-textarea"
+                placeholder="Quand s'est-il produit ? Quel est l'impact ? Quelles actions avez-vous déjà tentées ?"
+                formControlName="description"
+                maxlength="5000"
+                rows="6">
+              </textarea>
+            </div>
+            <div class="field-footer">
+              <div class="field-error inline" *ngIf="showError('description')">
+                <mat-icon>error</mat-icon>{{ errorMsg('description') }}
+              </div>
+              <div class="desc-progress">
+                <div class="progress-track">
+                  <div class="progress-fill"
+                    [style.width.%]="descProgressPct"
+                    [class.valid]="descLength >= 20"
+                    [class.near]="descLength > 4500">
+                  </div>
+                </div>
+                <span class="char-count" [class.near]="descLength > 4500" [class.max]="descLength >= 5000">
+                  {{ descLength }}/5000<span *ngIf="descLength < 20" class="min-hint"> · min 20</span>
+                </span>
+              </div>
+            </div>
+          </div>
+
+        </div>
+      </div>
+
+      <!-- Card 3 : Champs optionnels + PJ -->
+      <div class="card section-card" [formGroup]="form">
+        <div class="card-header">
+          <div class="section-num">03</div>
+          <div>
+            <h3>Informations complémentaires</h3>
+            <p class="card-subtitle">Optionnel — facilitez l'investigation</p>
+          </div>
+        </div>
+        <div class="card-body">
+
+          <div class="two-col-fields">
+            <!-- Utilisateur concerné -->
+            <div class="field-group">
+              <label class="field-label" for="reportedUser">
+                Utilisateur concerné
+                <span class="optional-tag">optionnel</span>
+              </label>
+              <div class="input-wrap"
+                   [class.has-error]="showError('reportedUserEmail') || emailNotFound()"
+                   [class.has-success]="emailResolved()">
+                <input
+                  id="reportedUser"
+                  type="email"
+                  class="form-input"
+                  placeholder="Adresse e-mail de l'utilisateur"
+                  formControlName="reportedUserEmail"
+                  maxlength="255">
+                <div class="input-suffix" *ngIf="emailChecking()">
+                  <div class="email-spinner"></div>
+                </div>
+                <div class="input-suffix" *ngIf="emailResolved() && !emailChecking()">
+                  <mat-icon class="icon-success">check_circle</mat-icon>
+                </div>
+                <div class="input-suffix" *ngIf="emailNotFound() && !emailChecking()">
+                  <mat-icon class="icon-error">cancel</mat-icon>
+                </div>
+              </div>
+
+              <!-- Email résolu — afficher nom + prénom -->
+              <div class="email-status found" *ngIf="emailResolved()">
+                <mat-icon>person</mat-icon>
+                <span>{{ emailResolved()!.firstName }} {{ emailResolved()!.lastName }} <span class="email-user-type">({{ emailResolved()!.type }})</span></span>
+              </div>
+
+              <!-- Email introuvable -->
+              <div class="email-status not-found" *ngIf="emailNotFound() && !emailChecking()">
+                <mat-icon>error_outline</mat-icon>
+                <span>Aucun compte ne correspond à cet email.</span>
+              </div>
+
+              <!-- Vérification en cours -->
+              <div class="email-status checking" *ngIf="emailChecking()">
+                <span>Vérification en cours...</span>
+              </div>
+
+              <!-- Erreurs de validation standard -->
+              <div class="field-error" *ngIf="showError('reportedUserEmail')">
+                <mat-icon>error</mat-icon>{{ errorMsg('reportedUserEmail') }}
+              </div>
+
+              <div class="field-warning" *ngIf="ctrl('reportedUserEmail').value?.length > 5 && !emailNotFound() && !showError('reportedUserEmail')">
+                <mat-icon>warning_amber</mat-icon>
+                <span>Toute réclamation abusive peut entraîner des mesures.</span>
+              </div>
+            </div>
+
+            <!-- Projet concerné -->
+            <div class="field-group">
+              <label class="field-label" for="project">
+                Projet concerné
+                <span class="optional-tag">optionnel</span>
+              </label>
+              <div class="input-wrap" [class.has-error]="showError('projectName')">
+                <input
+                  id="project"
+                  type="text"
+                  class="form-input"
+                  placeholder="Nom du projet concerné"
+                  formControlName="projectName"
+                  maxlength="255">
+              </div>
+              <div class="field-error" *ngIf="showError('projectName')">
+                <mat-icon>error</mat-icon>{{ errorMsg('projectName') }}
+              </div>
+            </div>
+          </div>
+
+          <!-- Pièces jointes -->
+          <div class="field-group">
+            <label class="field-label">
+              Pièces jointes
+              <span class="optional-tag">max {{ maxFiles }} fichiers · {{ maxFileSizeMb }} Mo</span>
+            </label>
+            <app-attachment-manager></app-attachment-manager>
+          </div>
+
+        </div>
+      </div>
+
+      <!-- Actions -->
+      <div class="form-actions">
+        <button type="button" class="btn-secondary" (click)="cancel()" [disabled]="isSubmitting()">
+          Annuler
+        </button>
+        <button
+          type="button"
+          class="btn-primary"
+          (click)="submit()"
+          [disabled]="isSubmitting() || isSubmitBlocked"
+          [class.btn-invalid]="formSubmitted() && (form.invalid || isSubmitBlocked)">
+          <div *ngIf="isSubmitting()" class="btn-spinner"></div>
+          <mat-icon *ngIf="!isSubmitting()">send</mat-icon>
+          {{ isUploading() ? uploadProgress() : (isSubmitting() ? 'Envoi en cours...' : 'Soumettre la réclamation') }}
+        </button>
+      </div>
+
+    </div><!-- /main-col -->
+
+    <!-- ── Sidebar droite ──────────────────────────────────────── -->
+    <aside class="side-col">
+
+      <!-- Widget : checklist progression -->
+      <div class="card widget-card">
+        <div class="widget-title">
+          <mat-icon>task_alt</mat-icon>
+          Progression
+        </div>
+        <ul class="checklist">
+          <li class="check-item" [class.done]="selectedCategory">
+            <span class="check-icon">
+              <mat-icon>{{ selectedCategory ? 'check_circle' : 'radio_button_unchecked' }}</mat-icon>
+            </span>
+            <span>Catégorie sélectionnée</span>
+          </li>
+          <li class="check-item" [class.done]="selectedPriority">
+            <span class="check-icon">
+              <mat-icon>{{ selectedPriority ? 'check_circle' : 'radio_button_unchecked' }}</mat-icon>
+            </span>
+            <span>Priorité définie</span>
+          </li>
+          <li class="check-item" [class.done]="subjectLength >= 5">
+            <span class="check-icon">
+              <mat-icon>{{ subjectLength >= 5 ? 'check_circle' : 'radio_button_unchecked' }}</mat-icon>
+            </span>
+            <span>Sujet renseigné</span>
+          </li>
+          <li class="check-item" [class.done]="descLength >= 20">
+            <span class="check-icon">
+              <mat-icon>{{ descLength >= 20 ? 'check_circle' : 'radio_button_unchecked' }}</mat-icon>
+            </span>
+            <span>Description (min 20 car.)</span>
+          </li>
+        </ul>
+        <div class="checklist-bar">
+          <div class="checklist-fill" [style.width.%]="checklistPct"></div>
+        </div>
+        <span class="checklist-pct">{{ checklistPct }}% complété</span>
+      </div>
+
+      <!-- Widget : délais SLA -->
+      <div class="card widget-card">
+        <div class="widget-title">
+          <mat-icon>schedule</mat-icon>
+          Délais de traitement
+        </div>
+        <ul class="sla-list">
+          <li class="sla-item">
+            <span class="sla-dot critical"></span>
+            <span class="sla-label">Critique</span>
+            <span class="sla-val">4h</span>
+          </li>
+          <li class="sla-item">
+            <span class="sla-dot high"></span>
+            <span class="sla-label">Haute</span>
+            <span class="sla-val">12h</span>
+          </li>
+          <li class="sla-item">
+            <span class="sla-dot medium"></span>
+            <span class="sla-label">Moyenne</span>
+            <span class="sla-val">48h</span>
+          </li>
+          <li class="sla-item">
+            <span class="sla-dot low"></span>
+            <span class="sla-label">Faible</span>
+            <span class="sla-val">5 jours</span>
+          </li>
+        </ul>
+      </div>
+
+      <!-- Widget : conseils -->
+      <div class="card widget-card tips-card">
+        <div class="widget-title">
+          <mat-icon>lightbulb</mat-icon>
+          Conseils
+        </div>
+        <ul class="tips-list">
+          <li>
+            <mat-icon>check</mat-icon>
+            <span>Soyez précis dans la description pour accélérer la résolution.</span>
+          </li>
+          <li>
+            <mat-icon>check</mat-icon>
+            <span>Joignez des captures d'écran ou documents si disponibles.</span>
+          </li>
+          <li>
+            <mat-icon>check</mat-icon>
+            <span>Indiquez l'UUID de l'utilisateur concerné si votre litige implique un tiers.</span>
+          </li>
+        </ul>
+      </div>
+
+    </aside>
+
+  </div><!-- /page-body -->
+
+</div><!-- /page-wrapper -->
